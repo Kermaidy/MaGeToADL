@@ -112,6 +112,7 @@ TFile* ADLOutput::RunSimulation(string InputFilename){
   std::cout << " " << std::endl;
   std::string treename = "fTree";
   TTree* Tree = 0;
+  int traces = 0;
   
   std::cout<< " " <<std::endl;
 
@@ -171,13 +172,15 @@ TFile* ADLOutput::RunSimulation(string InputFilename){
 	  
 	  //Simulate pulses with ADL once per event
 	  for (int j=0; j<hits_totnum; j++) {
-                    if(hits_iddet[j] >=3 && traceCalculated[hits_iddet[j]] == 0){
-		      SimulatePulse(hits_iddet[j]);
-		      traceCalculated[hits_iddet[j]] = 1;
-                    }
+	    if(hits_iddet[j] >=3 && traceCalculated[hits_iddet[j]] == 0 && hits_tote > 1.){
+	      SimulatePulse(hits_iddet[j]);
+	      traceCalculated[hits_iddet[j]] = 1;
+	      traces++;
+	    }
 	  }
 	}
 	std::cout << " " << std::endl;
+	std::cout << traces << " traces processed in total" << std::endl;
 	std::cout << "\r Simulation finished " << std::endl;
       }
       else std::cout << "Tree " << treename << " is empty" << std::endl;
@@ -216,8 +219,6 @@ void ADLOutput::SimulatePulse(int channel){
     ETotDet = ADLDetector->SetADLhits(hits_totnum,hits_edep,hits_xpos,hits_ypos,hits_zpos,hits_iddet);
   if(debugADL) std::cout << "DEBUG: ADL hits set" << std::endl;
   if(debugADL) std::cout << "DEBUG: Deposited energy in channel " << channel << " is " << ETotDet << "/" << hits_tote << " MeV" << std::endl;
-
-  if(hits_tote > 1.0){
 
     if(ADLDetector->CalculateTrace(ADLDetector->GetSetupFile())) std::cerr<< "Failed to calculate trace" <<std::endl;
     if(debugADL) std::cout << "DEBUG: ADL calculate trace" << std::endl;
@@ -284,7 +285,7 @@ void ADLOutput::SimulatePulse(int channel){
     fOutputFile->cd();
     MGTree->Fill();
     if(debugADL) std::cout << "Print MGTree : " << MGTree->GetEntries() << " events recorded" << std::endl;
-  }
+  
   ADLDetector->DeleteADLevent();
 }
 
