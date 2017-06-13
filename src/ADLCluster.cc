@@ -6,9 +6,9 @@
 
 #include "ADLCluster.hh"
 
-ADLCluster::ADLCluster()
+ADLCluster::ADLCluster(int channel)
 {
-
+    detId = channel;
 }
 
 ADLCluster::~ADLCluster()
@@ -23,11 +23,12 @@ double randf(double m)
     return m * rand() / (RAND_MAX - 1.);
 }
 
-std::vector<int> SortHitsId(int Nhits,int detId,int*hIddet)
+std::vector<int> SortHitsId(int Npts,int*hIddet)
 {
   std::vector<int> Id;
+  Id.assign(Npts,0);
 
-  for (int i=0;i<Nhits;i++) if(hIddet[i] == detId) Id.push_back(i);
+  for (int i=0;i<Npts;i++) if(hIddet[i] == detId) Id[i] = Id;
 
   return Id;
 }
@@ -109,7 +110,7 @@ void kpp(point pts, int len, point cent, int n_cent)
     free(d);
 }
 
-std::vector<std::vector<double> > lloyd(point pts, int len, int n_cluster,int detId)
+void lloyd(point pts, int len, int n_cluster)
 {
     int i, j, min_i;
     int changed;
@@ -145,25 +146,15 @@ std::vector<std::vector<double> > lloyd(point pts, int len, int n_cluster,int de
     
     for_n { c->group = i; }
     
-    std::vector<std::vector<double> > clusterPos;
-    std::vector<double> clusterPosX,clusterPosY,clusterDetID;
-        
     for(i = 0; i < n_cluster; i++, cent++) {
-        clusterPosX.push_back(cent->x);
-        clusterPosY.push_back(cent->y);
-        clusterDetID.push_back(detId);
+        
+        clustersPos[0][i] = cent->x;
+        clustersPos[1][i] = cent->y;
+        clustersPos[2][i] = detId;
     }
-    clusterPos.push_back(clusterPosX);
-    clusterPos.push_back(clusterPosY);
-    clusterPos.push_back(clusterDetID);
-
-    return clusterPos;
 }
 
-//int CheckClusters(int Nhits,int Npts,float*hr,float* hz,int* hIddet,int detID,std::vector<std::vector<double> > &cluster, double RMS){
-int CheckClusters(int Npts,float*hr,float* hz,std::vector<int> &HitsId,int detID,std::vector<std::vector<double> > &cluster, double RMS){
-
-    int Ncls = cluster[0].size();
+int CheckClusters(int Npts,int Ncls,float*hr,float* hz,std::vector<int> &HitsId, double RMS){
     
     int Nin = 0, Nin2 = 0, Nout = 0;
     double dist;
@@ -180,7 +171,7 @@ int CheckClusters(int Npts,float*hr,float* hz,std::vector<int> &HitsId,int detID
 	  //printf("   hit %d check pos : %.04f %.04f \n",j,hr[j],hz[j]); 
 	  if(IDin[HitsId[j]] == 0){
 	    //printf("   hit %i check : %.04f %.04f %.04f %.04f \n",j,hr[j],hz[j],cluster[0][i],cluster[1][i]); 
-	      dist = sqrt(GetDist(hr[HitsId[j]],hz[HitsId[j]],cluster[0][i],cluster[1][i]));
+	      dist = sqrt(GetDist(hr[HitsId[j]],hz[HitsId[j]],clustersPos[0][i],clustersPos[1][i]));
                 if(dist <= RMS){ Nin++; IDin[HitsId[j]] = 1;}
 		//                else if(dist <= 1.5*RMS){ Nin2++; IDin[j] = 1;}
                 else{ 
@@ -207,7 +198,7 @@ int CheckClusters(int Npts,float*hr,float* hz,std::vector<int> &HitsId,int detID
     for(int i = 0;i<Ncls;i++){
         for(int j = i;j<Ncls;j++){
             if(j > i){
-                dist = sqrt(GetDist(cluster[0][j],cluster[1][j],cluster[0][i],cluster[1][i]));
+                dist = sqrt(GetDist(clustersPos[0][j],clustersPos[1][j],clustersPos[0][i],clustersPos[1][i]));
                 if(dist < 2.*RMS){
                     IDoverlap[i][j] = 1;
                     overlap++;
@@ -220,36 +211,36 @@ int CheckClusters(int Npts,float*hr,float* hz,std::vector<int> &HitsId,int detID
       std::vector<double> newclusterX, newclusterY, newclusterID;
       double meanX, meanY;
     
-    for(int i = 0;i<Ncls;i++){
-        meanX = 0.;
-        meanY = 0.;
-        overlap = 0;
+        for(int i = 0;i<Ncls;i++){
+            meanX = 0.;
+        	meanY = 0.;
+        	overlap = 0;
         
-        for(int j = i;j<Ncls;j++){
-            if(IDoverlap[i][j] == 1 && cluster[0][j] != 666){
-                meanX += mean(cluster[0][i],cluster[0][j]);
-                meanY += mean(cluster[1][i],cluster[1][j]);
-                cluster[0][j] = 666;
-                cluster[1][j] = 666;
-                overlap++;
-            }
-        }
-        if(overlap == 0 && cluster[0][i] != 666){
-            newclusterX.push_back(cluster[0][i]);
-            newclusterY.push_back(cluster[1][i]);
-	    newclusterID.push_back(detID);
-        }
-        else if(cluster[0][i] != 666){
-            newclusterX.push_back(meanX/double(overlap));
-            newclusterY.push_back(meanY/double(overlap));
- 	    newclusterID.push_back(detID);
-       }
-    }
+        	for(int j = i;j<Ncls;j++){
+            	if(IDoverlap[i][j] == 1 && cluster[0][j] != 666){
+                	meanX += mean(clustersPos[0][i],clustersPos[0][j]);
+                	meanY += mean(clustersPos[1][i],clustersPos[1][j]);
+                	clustersPos[0][j] = 666;
+                	clustersPos[1][j] = 666;
+                	overlap++;
+            	}
+        	}
+        	if(overlap == 0 && clustersPos[0][i] != 666){
+        	    newclusterX.push_back(clustersPos[0][i]);
+        	    newclusterY.push_back(clustersPos[1][i]);
+        	    newclusterID.push_back(detID);
+        	}
+        	else if(clustersPos[0][i] != 666){
+        	    newclusterX.push_back(meanX/double(overlap));
+        	    newclusterY.push_back(meanY/double(overlap));
+        	    newclusterID.push_back(detID);
+       		}
+    	}
     
-    cluster.clear();
-    cluster.push_back(newclusterX);
-    cluster.push_back(newclusterY);
-    cluster.push_back(newclusterID);
+	    clustersPos.clear();
+    	clustersPos.push_back(newclusterX);
+    	clustersPos.push_back(newclusterY);
+    	clustersPos.push_back(newclusterID);
     }
     
     //printf("%lu clusters has been removed \n",Ncls-cluster[0].size());
@@ -257,34 +248,22 @@ int CheckClusters(int Npts,float*hr,float* hz,std::vector<int> &HitsId,int detID
     return 1;
 }
 
-std::vector<double> SetClusterEnergy(int Npts,float*hr,float* hz,std::vector<int> detIds,int* hIddet,std::vector<std::vector<double> > &cluster,float*hEdep, double threshold)
+void SetClusterEnergy(int Npts,int Ncls,float*hr,float* hz,int* hIddet,float*hEdep, double threshold)
 {
-  int Ncls = cluster[0].size();
-  int Ndet = detIds.size();
-
-  std::vector<double> clusterE;
-
-  for(int k = 0;k<Ndet;k++){
     for(int i = 0;i<Ncls;i++){
-      if(cluster[2][i] == detIds[k]){
-
-	clusterE.push_back(0.);	  
-	for(int j = 0;j<Npts;j++)
-	  if(hIddet[j] == detIds[k] && sqrt(GetDist(hr[j],hz[j],cluster[0][i],cluster[1][i])) < threshold) clusterE[i] += hEdep[j];
-      }
-    }    
-  }
-  return clusterE;
+        clustersPos[3][i] = 0.;
+        for(int j = 0;j<Npts;j++)
+            if(sqrt(GetDist(hr[HitsId[j]],hz[HitsId[j]],clustersPos[0][i],clustersPos[1][i])) < threshold) clustersPos[3][i] += hEdep[HitsId[j]];
+    }
 }
 
-double CheckEdep(int Nhits, std::vector<std::vector<double> > &cluster, float* hEdep)
+double CheckEdep(int Npts, int Ncls, float* hEdep)
 {
-  int Ncls = cluster[0].size();
   double clusterEdep = 0;
   double hitsEdep = 0;
 
-  for(int i = 0;i<Ncls;i++) clusterEdep += cluster[3][i];
-  for(int i = 0;i<Nhits;i++) hitsEdep += hEdep[i];
+  for(int i = 0;i<Ncls;i++) clusterEdep += clustersPos[3][i];
+  for(int i = 0;i<Npts;i++) hitsEdep += hEdep[HitsId[i]];
 
   //  printf("Energy deposited in cluster %lf and hits %lf. Ratio : %lf \n",clusterEdep,hitsEdep,clusterEdep/hitsEdep);
 
@@ -296,22 +275,13 @@ void ADLCluster::GetRadCoord(int Npts,float* hx,float* hy)
   for(int i = 0; i<Npts;i++) hr[i] = sqrt(pow(hx[i],2)+pow(hy[i],2));
 }
 
-std::vector<int> GetDetIds(int Npts,int* hIddet){
+int GetDetHits(int Nhits,int* hIddet){
 
-  int flag = 0;
-  std::vector<int> detIds;
+  int NdetHits = 0;
   
-  detIds.push_back(hIddet[0]);
+  for(int i = 0;i<Nhits;i++) if(hIddet[i] == detId) NdetHits++;
 
-  for(int i = 1;i<Npts;i++){
-    for(int j = 0;j<detIds.size();j++){
-      if(hIddet[i] != detIds[j]) flag = 1;
-      else {flag = 0; break;}
-    }
-    if(flag) detIds.push_back(hIddet[i]);
-  }
-
-  return detIds;
+  return NdetHits;
 }
 
 void CheckData(int Npts,point data)
@@ -319,67 +289,50 @@ void CheckData(int Npts,point data)
   int i;
   point p;
   for(i = 0, p = data; i < Npts; i++, p++) printf("    Check data : %.04f %.04f \n",p->x,p->y);
-
-
 }
 
 double ADLCluster::LaunchClustering(int Nhits, float* hx,float* hy,float*hz,float* hEdep,int* hIddet)
 {
-  int debug = 1;
-  int K = 1;                // Initial number of clusters 
-  int Nstep = 10;           // Maximum number of cluster authorized
-  int check = 0;            // Flag to determine the appropriate number of clusters
-  int Npts;                 // Number of hits for each detector
-  double threshold = 0.1;   // Cluster size in cm
+  	int debug = 1;
+  	int Ncls = 1;                // Initial number of clusters
+  	int Nstep = 10;           // Maximum number of cluster authorized
+  	int check = 0;            // Flag to determine the appropriate number of clusters
+  	int Npts;                 // Number of hits for each detector
+  	double threshold = 0.1;   // Cluster size in cm
 
-  GetRadCoord(Nhits,hx,hy); // Transform (X,Y) coord to radial coord.
-  std::vector<int> detIds = GetDetIds(Nhits,hIddet);
+  	GetRadCoord(Nhits,hx,hy); // Transform (X,Y) coord to radial coord.
+  	Npts = GetDetHits(Nhits,hIddet);
 
-  //if(debug) printf("   Detectors ID : %d \n",detIds.size());
-  //if(debug) printf("   Loop over detector ID ");
+  	//if(debug) printf("   Detectors ID : %d \n",detIds.size());
+  	//if(debug) printf("   Loop over detector ID ");
 
-  for(int j = 0;j<detIds.size();j++){
-    check = 0;
-    K = 1;
-    //if(debug) printf("%d ",j);
-
-    std::vector<std::vector<double> > clustersPosTmp;
-    std::vector<int> HitsId = SortHitsId(Nhits,detIds[j],hIddet);
-    Npts = HitsId.size();
+    std::vector<int> HitsId = SortHitsId(Nhits,hIddet);
     point data = set_rz(Npts,hr,hz,HitsId);
     //CheckData(Npts,data);
 
     for(int i = 0;i<Nstep;i++){
-      //printf(" %d %d %d %d / %d ",detIds[j],K,check, Npts,Nhits);
-      clustersPosTmp = lloyd(data, Npts, K,detIds[j]);
-      //if(debug) printf(" lloyd step : %d ",i);
-      check = CheckClusters(Npts,hr,hz,HitsId,detIds[j],clustersPosTmp,threshold);
-      //if(debug) printf(" check step : %d ",check);
-      if(check == 1) break;
-      else K++;
+        clustersPos[0].assign(Ncls,0.);
+        clustersPos[1].assign(Ncls,0.);
+        clustersPos[2].assign(Ncls,0.);
+        clustersPos[3].assign(Ncls,0.);
+        
+        //printf(" %d %d %d / %d ",Ncls,check, Npts,Nhits);
+      	lloyd(data, Npts, Ncls);
+      	//if(debug) printf(" lloyd step : %d ",i);
+      	check = CheckClusters(Npts,Ncls,hr,hz,HitsId,threshold);
+      	//if(debug) printf(" check step : %d ",check);
+      	if(check == 1) break;
+      	else Ncls++;
     }
     //if(debug) printf(" Number of cluster : %d ",clustersPosTmp[0].size());
-    if(j==0){
-      clustersPos.push_back(clustersPosTmp[0]);
-      clustersPos.push_back(clustersPosTmp[1]);
-      clustersPos.push_back(clustersPosTmp[2]);
-    }
-    else{
-      clustersPos[0].insert(std::end(clustersPos[0]),std::begin(clustersPosTmp[0]),std::end(clustersPosTmp[0]));
-      clustersPos[1].insert(std::end(clustersPos[1]),std::begin(clustersPosTmp[1]),std::end(clustersPosTmp[1]));
-      clustersPos[2].insert(std::end(clustersPos[2]),std::begin(clustersPosTmp[2]),std::end(clustersPosTmp[2]));
-    }
 
-    //if(debug) printf(" set ");
-    clustersPosTmp.clear();
     free(data);
-  }    
 
-  //if(debug) printf("\n   Set cluster Edep \n");
-  clustersPos.push_back(SetClusterEnergy(Nhits,hr,hz,detIds,hIddet,clustersPos,hEdep,threshold));
-  //if(debug) printf("   Check Edep \n");
-  return CheckEdep(Nhits,clustersPos,hEdep);
-
+  	//if(debug) printf("\n   Set cluster Edep \n");
+  	SetClusterEnergy(Nhits,hr,hz,HitsId,hEdep,threshold);
+  	//if(debug) printf("   Check Edep \n");
+    
+  	return CheckEdep(Npts,Ncls,hEdep);
 }
 
 std::vector<std::vector<double> > ADLCluster::GetClusters(){return clustersPos;}

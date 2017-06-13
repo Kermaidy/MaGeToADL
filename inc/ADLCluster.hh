@@ -10,7 +10,7 @@ class ADLCluster
 {
 public:
   //default constructor
-  ADLCluster();
+  ADLCluster(int);
   
   //copy constructor
   ADLCluster(const ADLCluster &);
@@ -27,8 +27,12 @@ public:
 private:
 
     static const int MAX_NHITS=1000;    
+    
     float hr[MAX_NHITS];
-    std::vector<std::vector<double> > clustersPos;
+    
+    std::vector<std::vector<double> > clustersPos(4);
+    
+    int detId;
 };
 
 #endif

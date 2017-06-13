@@ -239,7 +239,7 @@ void ADLOutput::SimulatePulse(int channel){
    //for(int i = 0;i<hits_totnum;i++)  printf("    Hits position : %d %.03f %.03f %.03f %.03f \n",hits_iddet[i], hits_xpos[i],hits_ypos[i],hits_zpos[i],hits_edep[i]);
    
 
-   ADLCluster HitsCluster;
+   ADLCluster HitsCluster(channel);
    
    edepFlag = HitsCluster.LaunchClustering(hits_totnum,hits_xpos,hits_ypos,hits_zpos,hits_edep,hits_iddet);
    
