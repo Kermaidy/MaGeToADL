@@ -1,0 +1,32 @@
+#ifndef _ADLCLUSTER_HH
+#define _ADLCLUSTER_HH
+
+
+// ADL includes
+#include "ADLCluster.hh"
+
+//---------------------------------------------------------------------------//
+//   Clustering algorithm from https://rosettacode.org/wiki/Category:C       //
+//---------------------------------------------------------------------------//
+
+
+class ADLCluster
+{
+public:
+  //default constructor
+  ADLCluster();
+
+  //destructor
+  ~ADLCluster();
+
+   void LaunchClustering(int,int,Float_t*,Float_t*);
+   vector<vector<double> > GetClusters();
+
+  //private  members
+private:
+
+    std::vector<std::vector<double> > clustersPos;
+};
+
+#endif
+

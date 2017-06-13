@@ -11,6 +11,7 @@
 
 // ADL includes
 #include "ADLDetectorTrace.hh"
+#include "ADLCluster.hh"
 
 //---------------------------------------------------------------------------//
 // ROOT declarations
@@ -67,6 +68,7 @@ private:
   Float_t  trace_zposH[MAX_NTRACE];
 
   bool fSimulateTraces;
+  bool fClusterization;
   bool fRecordADLOutPos;
   bool fRecordADLTraces;
 

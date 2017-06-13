@@ -138,6 +138,36 @@ void ADLDetectorTrace::SetAuxWaveformAttribute(double wfpretrigger, double basel
   AuxRMS_noise = rms_noise;
 }
 
+double ADLDetectorTrace::SetADLhits(int hits_totnum, std::vector<double> &hits_edep, std::vector<double> &hits_xpos, std::vector<double> &hits_zpos, std::vector<double> &hits_iddet){
+  
+  double ETotDet = 0;
+  int j = 0;
+  
+  for(Int_t i = 0;i<hits_totnum;i++){
+    
+    if(hits_iddet[i] == detector_channel){ // Consider only hits in the given detector.
+      //Fill in the Hit Pattern (HP):
+      double P0[4]={0,hits_xpos[i] + xcenter,ycenter,inverted*(hits_zpos[i] + height)};
+      
+      if(IsInDetector(P0)){
+	if(debugADL) std::cout << "Hits in detector " << detector_channel << std::endl;
+	ETotDet += hits_edep[i];
+	ADL_evt->HP.Eint[j]  =hits_edep[i];             //Energy of interaction
+	ADL_evt->HP.Pos[j][0]=hits_xpos[i] + xcenter;	  //Position where this interaction occures in the ADL referential
+	ADL_evt->HP.Pos[j][1]=ycenter;
+	ADL_evt->HP.Pos[j][2]=inverted*(hits_zpos[i] + height);
+	
+	j++; // Only iterate on points in the detector
+      }
+      else if(debugADL) std::cout << "Hits not in detector " << detector_channel << std::endl;
+      
+      if(debugADL) std::cout << "    MaGe ref. hits position : " << hits_xpos[i] << " " << hits_zpos[i] << std::endl;
+      if(debugADL) std::cout << "    ADL  ref. hits position : " << P0[1] << " " << P0[3] << std::endl;
+    }
+  }
+  return ETotDet;
+}
+
 double ADLDetectorTrace::SetADLhits(int hits_totnum, Float_t*hits_edep, Float_t*hits_xpos, Float_t*hits_ypos, Float_t*hits_zpos, Int_t*hits_iddet){
   
   double ETotDet = 0;
@@ -203,7 +233,7 @@ double ADLDetectorTrace::SetADLhits(int hits_totnum, Float_t*hits_edep, Float_t*
   return ETotDet;
 }
 
-int ADLDetectorTrace::CalculateTrace(std::string setupfile){
+int ADLDetectorTrace::CalculateTrace(){
   if(debugADL) StatusTraces(ADL_evt);
   CalculateTraces(ADL_evt);
 
@@ -216,15 +246,14 @@ int ADLDetectorTrace::SetADLWaveform(MGTWaveform* waveform) {
   int adl_iter = 0;
 
   gRandom->SetSeed(time(NULL));
-  int randomline = int(gRandom->Uniform(0,Noise[0].size()));
+  int randomline = int(gRandom->Uniform(0,Noise.size()));
 
-  if(debugADL) std::cout<< "DEBUG :  Noise size : " <<  Noise[randomline][detector_channel].size() << "/" << waveform->GetLength() << std::endl;
-
-  if(Noise[randomline][detector_channel].size() != waveform->GetLength()){ 
-    std::cout<< "No proper noise found in library for channel " << detector_channel << std::endl; 
-    std::cout<< "Noise size : " <<  Noise.size() << "x" << Noise[0].size() << "x" << Noise[randomline][detector_channel].size() << "/" << waveform->GetLength() << std::endl;
-    return 1; }
-
+  if(debugADL){
+    if(Noise[randomline][detector_channel].size() != waveform->GetLength()){ 
+      std::cout<< "DEBUG :  No proper noise found in library for channel " << detector_channel << std::endl; 
+      std::cout<< "DEBUG :  Noise size : " <<  Noise.size() << "x" << Noise[0].size() << "x" << Noise[randomline][detector_channel].size() << "/" << waveform->GetLength() << std::endl;
+      return 1; }
+  }
   if(TraceLength>0){
     for (size_t i=0;i<waveform->GetLength();i++){
       if(i<wfPreTrigger) (*waveform)[i] = 4. * Baseline + Noise[randomline][detector_channel][i];
@@ -250,12 +279,14 @@ int ADLDetectorTrace::SetADLauxWaveform(MGTWaveform* waveform) {
   gRandom->SetSeed(time(NULL));
   int randomline = int(gRandom->Uniform(0,AuxNoise.size()));
 
-  if(debugADL)  std::cout<< "DEBUG :  Noise size : " <<  AuxNoise[randomline][detector_channel].size() << "/" << waveform->GetLength() << std::endl;
-  if(AuxNoise[randomline][detector_channel].size() != waveform->GetLength()){ 
-    std::cout<< "No proper aux noise found in library for channel " << detector_channel << std::endl; 
-    std::cout<< "Noise size : " <<  AuxNoise.size() << "x" << AuxNoise[0].size() << "x" << AuxNoise[randomline][detector_channel].size() << "/" << waveform->GetLength() << std::endl;
-    return 1; 
+  if(debugADL){
+    if(AuxNoise[randomline][detector_channel].size() != waveform->GetLength()){ 
+      std::cout<< "DEBUG :  No proper aux noise found in library for channel " << detector_channel << std::endl; 
+      std::cout<< "DEBUG :  Noise size : " <<  AuxNoise.size() << "x" << AuxNoise[0].size() << "x" << AuxNoise[randomline][detector_channel].size() << "/" << waveform->GetLength() << std::endl;
+      return 1; 
+    }
   }
+  if(AuxNoise[randomline][detector_channel].size() != waveform->GetLength()) return 1;
 
   if(TraceLength>0){
     for (size_t i=0;i<waveform->GetLength();i++){
@@ -356,7 +387,7 @@ std::vector<std::vector<std::vector<double> > > ADLDetectorTrace::GetNoise(int i
 
   string treename = "noiseTree";
 
-  for(int filenumber = 0;filenumber<100;filenumber++){
+  for(int filenumber = 0;filenumber<1;filenumber++){
     ostringstream oss;
     oss << filenumber;
     

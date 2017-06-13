@@ -1,6 +1,6 @@
 #!/bin/bash
 
-SWMOD_PATH=/path/to/swmod
+SWMOD_PATH=/lfs/l3/gerda/kermaidy/Analysis/software/src/swmod
 
 . ${SWMOD_PATH}/bin/swmod.sh init
 
@@ -8,4 +8,6 @@ swmod load root@6.05.02
 swmod load clhep@2.1.3.1
 swmod load gerda@master
 
-./SimulatePulse $1 $2 $3
+cd $2
+
+./SimulatePulse ../mage/macros/ $1

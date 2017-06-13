@@ -33,8 +33,9 @@ public:
   void SetAuxWaveformAttribute(double,double,double,double);
   double SetADLhits(int, Float_t*, Float_t*, Float_t*, Float_t*, Int_t*, Float_t*, Int_t*);
   double SetADLhits(int, Float_t*, Float_t*, Float_t*, Float_t*, Int_t*);
+  double SetADLhits(int, std::vector<double> &,std::vector<double> &,std::vector<double> &,std::vector<double> &);
 //  double SetADLhits(int, Float_t&, Float_t&, Float_t&, Float_t&, Int_t&);
-  int CalculateTrace(std::string);
+  int CalculateTrace();
   std::vector<std::vector<std::vector<double> > > GetNoise(int);
   int SetADLWaveform(MGTWaveform*);
   int SetADLauxWaveform(MGTWaveform*);

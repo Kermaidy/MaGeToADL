@@ -1,6 +1,6 @@
 #!/bin/bash
 
-SCRIPT_PATH=/path/to/testadl
+SCRIPT_PATH=/lfs/l3/gerda/kermaidy/Analysis/software/src/MaGeToADL
 ERROR_PATH=${SCRIPT_PATH}/JobErrors/
 OUTPUT_PATH=${SCRIPT_PATH}/JobOutput/
 
@@ -16,9 +16,16 @@ declare -i iter
 
 if [ $1 = "1" ];
 then
+	cd ${SCRIPT_PATH}/../mage/macros/
+	files=$(find -maxdepth 1 -name "Gerda_Gerda$2_*.root")
+    	iter=0
+	for file in ${files}
+        do
+	    iter=iter+1
 	    JOBNAME_ID=${JOBNAME}_$iter
-	    echo "Processing simulation : ${iter}"
-	    qsub -P short -e $ERROR_PATH -o $OUTPUT_PATH -N $JOBNAME_ID ${SCRIPT_PATH}/LaunchJobSimulation.sh ${iter} ${SCRIPT_PATH}
+	    echo "Processing simulation : ${iter} ${file}"
+	    qsub -P short -e $ERROR_PATH -o $OUTPUT_PATH -N $JOBNAME_ID ${SCRIPT_PATH}/LaunchJobSimulation.sh ${file} ${SCRIPT_PATH}
+	done
 elif [ $1 = "2" ];
 then
 	iter=0

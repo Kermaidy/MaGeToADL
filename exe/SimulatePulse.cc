@@ -1,5 +1,6 @@
 #include "ADLOutput.hh"
 #include "ADLDetectorTrace.hh"
+#include "ADLCluster.hh"
 #include "TFile.h"
 #include "TTree.h"
 #include "TBranch.h"
@@ -8,16 +9,16 @@ using namespace std;
 
 int main(int argc, const char* argv[])
 {
+ string intputrootpath;
  string intputrootfilename;
+ string rootfilename;
  string outputrootfilename;
- string type;
- string simID;
 
- if(argc>3){
-     intputrootfilename = argv[1];
-     type = argv[2];
-     simID = argv[3];
-	outputrootfilename = "./Tier1/" + type + "_" + simID + "-Tier1.root";
+ if(argc>2){
+   intputrootpath = argv[1];
+   rootfilename = argv[2];
+   intputrootfilename = intputrootpath + rootfilename;
+   outputrootfilename = "./Tier1/" + rootfilename;
  }
  else{
      cout << "You did not provide enough arguments " << endl;
