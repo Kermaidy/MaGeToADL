@@ -20,10 +20,10 @@ public:
   //destructor
   ~ADLCluster();
 
-  std::vector<int> SortHitsId(int,int,int*);
-  int CheckClusters(int,int,int,float*,float*,std::vector<int> &, double);
-  void SetClusterEnergy(int,int,float*,float*,std::vector<int> &,float*,double);
-  double CheckEdep(int, int, float*, std::vector<int> &);
+  void SortHitsId(int,int,int*);
+  int CheckClusters(int,int,int,float*,float*, double);
+  void SetClusterEnergy(int,int,float*,float*,float*,double);
+  double CheckEdep(int, int, float*);
   double LaunchClustering(int, float*, float*,float*,float*,int*);
   int GetDetHits(int,int*);
   void GetRadCoord(int,float*,float*);

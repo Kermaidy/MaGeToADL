@@ -6,6 +6,8 @@
 
 #include "ADLCluster.hh"
 
+std::vector<int> HitsId;
+
 ADLCluster::ADLCluster(int channel)
 {
     detId = channel;
@@ -24,18 +26,15 @@ double randf(double m)
     return m * rand() / (RAND_MAX - 1.);
 }
 
-std::vector<int> ADLCluster::SortHitsId(int Nhits,int Npts,int*hIddet)
+void ADLCluster::SortHitsId(int Nhits,int Npts,int*hIddet)
 {
-  std::vector<int> Id;
-  Id.assign(Npts,0);
+  HitsId.assign(Npts,0);
   int j = 0;
 
-  for (int i=0;i<Nhits;i++) if(hIddet[i] == detId) {Id[j] = i; j++;}
-
-  return Id;
+  for (int i=0;i<Nhits;i++) if(hIddet[i] == detId) {HitsId[j] = i; j++;}
 }
 
-point set_rz(int Npts, float* hr,float*hz,std::vector<int> &HitsId)
+point set_rz(int Npts, float* hr,float*hz)
 {
   point p, pt = (point) malloc(sizeof(point_t) * Npts);
   int i =0;
@@ -157,7 +156,7 @@ void lloyd(point pts, int len, int n_cluster,std::vector<std::vector<double> > &
     }
 }
 
-int ADLCluster::CheckClusters(int Nhits,int Npts,int Ncls,float*hr,float* hz,std::vector<int> &HitsId, double RMS){
+int ADLCluster::CheckClusters(int Nhits,int Npts,int Ncls,float*hr,float* hz, double RMS){
     
     int Nin = 0, Nin2 = 0, Nout = 0;
     double dist;
@@ -250,7 +249,7 @@ int ADLCluster::CheckClusters(int Nhits,int Npts,int Ncls,float*hr,float* hz,std
     return 1;
 }
 
-void ADLCluster::SetClusterEnergy(int Npts,int Ncls,float*hr,float* hz,std::vector<int> &HitsId,float*hEdep, double threshold)
+void ADLCluster::SetClusterEnergy(int Npts,int Ncls,float*hr,float* hz,float*hEdep, double threshold)
 {
     for(int i = 0;i<Ncls;i++){
         clustersPos[3][i] = 0.;
@@ -259,7 +258,7 @@ void ADLCluster::SetClusterEnergy(int Npts,int Ncls,float*hr,float* hz,std::vect
     }
 }
 
-double ADLCluster::CheckEdep(int Npts, int Ncls, float* hEdep, std::vector<int> &HitsId)
+double ADLCluster::CheckEdep(int Npts, int Ncls, float* hEdep)
 {
   double clusterEdep = 0;
   double hitsEdep = 0;
@@ -306,8 +305,8 @@ double ADLCluster::LaunchClustering(int Nhits, float* hx,float* hy,float*hz,floa
   	GetRadCoord(Nhits,hx,hy); // Transform (X,Y) coord to radial coord.
   	Npts = GetDetHits(Nhits,hIddet);
 
-    std::vector<int> HitsId = SortHitsId(Nhits,Npts,hIddet);
-    point data = set_rz(Npts,hr,hz,HitsId);
+    SortHitsId(Nhits,Npts,hIddet);
+    point data = set_rz(Npts,hr,hz);
   //  CheckData(Npts,data);
 
     std::vector<double> initCluster;
@@ -320,12 +319,12 @@ double ADLCluster::LaunchClustering(int Nhits, float* hx,float* hy,float*hz,floa
         clustersPos.push_back(initCluster); // detId
         clustersPos.push_back(initCluster); // E
 
-//	printf(" Number of cluster : %d x %d / %d \n",clustersPos.size(),clustersPos[0].size(),initCluster.size());
+	printf(" Number of cluster : %d x %d / %d \n",clustersPos.size(),clustersPos[0].size(),initCluster.size());
         
 //        printf(" %d %d %d %d / %d \n",detId,Ncls,check, Npts,Nhits);
       	lloyd(data, Npts, Ncls, clustersPos, detId);
 //      	printf(" lloyd step : %d \n",i);
-      	check = CheckClusters(Nhits,Npts,Ncls,hr,hz,HitsId,threshold);
+      	check = CheckClusters(Nhits,Npts,Ncls,hr,hz,threshold);
 //      	printf(" check step : %d \n",check);
       	if(check == 1) break;
       	else Ncls++;
@@ -334,13 +333,14 @@ double ADLCluster::LaunchClustering(int Nhits, float* hx,float* hy,float*hz,floa
 
     Ncls = clustersPos[0].size();
 
+    initCluster.clear();
     free(data);
 
 //    printf("\n   Set %d cluster Edep \n",Ncls);
-    SetClusterEnergy(Npts,Ncls,hr,hz,HitsId,hEdep,threshold);
+    SetClusterEnergy(Npts,Ncls,hr,hz,hEdep,threshold);
 //    printf("   Check Edep \n");
     
-    return CheckEdep(Npts,Ncls,hEdep,HitsId);
+    return CheckEdep(Npts,Ncls,hEdep);
 }
 
 std::vector<std::vector<double> > ADLCluster::GetClusters(){return clustersPos;}

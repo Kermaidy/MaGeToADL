@@ -17,7 +17,7 @@ declare -i iter
 if [ $1 = "1" ];
 then
 	cd ${SCRIPT_PATH}/../mage/macros/
-	files=$(find -maxdepth 1 -name "Gerda_Gerda$2_*.root")
+	files=$(find -maxdepth 1 -name "Gerda_Gerda$2_1*.root")
     	iter=0
 	for file in ${files}
         do
