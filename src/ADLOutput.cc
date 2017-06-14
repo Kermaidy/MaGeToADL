@@ -235,9 +235,8 @@ void ADLOutput::SimulatePulse(int channel){
    //
    //////////////////////////////////////////
 
-   //std::cout << "DEBUG: ADL clusterization of " << hits_totnum << " hits" << std::endl;
+   if(debugADL) std::cout << "DEBUG: ADL clusterization of " << hits_totnum << " hits" << std::endl;
    //for(int i = 0;i<hits_totnum;i++)  printf("    Hits position : %d %.03f %.03f %.03f %.03f \n",hits_iddet[i], hits_xpos[i],hits_ypos[i],hits_zpos[i],hits_edep[i]);
-   
 
    ADLCluster HitsCluster(channel);
    
@@ -248,7 +247,7 @@ void ADLOutput::SimulatePulse(int channel){
      
      //for(int i = 0;i<clusters[0].size();i++) printf("   Clusters position : %.03f %.03f %.03f %.05f \n", edepFlag, clusters[0][i],clusters[1][i],clusters[3][i]);
      
-     ETotDet = ADLDetector->SetADLhits(hits_totnum,clusters[3],clusters[0],clusters[1],clusters[2]);
+     ETotDet = ADLDetector->SetADLhits(clusters[0].size(),clusters[3],clusters[0],clusters[1],clusters[2]);
    }
 //   else 
 //     printf("   Bad clustering : %.05f  \n", edepFlag);

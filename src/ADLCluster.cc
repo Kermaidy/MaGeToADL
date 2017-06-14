@@ -295,7 +295,7 @@ void CheckData(int Npts,point data)
 
 double ADLCluster::LaunchClustering(int Nhits, float* hx,float* hy,float*hz,float* hEdep,int* hIddet)
 {
- 	int debug = 1;
+ 	int debug = 0;
   	int Ncls = 1;                // Initial number of clusters
   	int Nstep = 10;           // Maximum number of cluster authorized
   	int check = 0;            // Flag to determine the appropriate number of clusters
@@ -319,26 +319,26 @@ double ADLCluster::LaunchClustering(int Nhits, float* hx,float* hy,float*hz,floa
         clustersPos.push_back(initCluster); // detId
         clustersPos.push_back(initCluster); // E
 
-	printf(" Number of cluster : %d x %d / %d \n",clustersPos.size(),clustersPos[0].size(),initCluster.size());
-        
-//        printf(" %d %d %d %d / %d \n",detId,Ncls,check, Npts,Nhits);
+	if(debug) printf(" Number of cluster : %d x %d / %d \n",clustersPos.size(),clustersPos[0].size(),initCluster.size());        
+        if(debug) printf(" %d %d %d %d / %d \n",detId,Ncls,check, Npts,Nhits);
+
       	lloyd(data, Npts, Ncls, clustersPos, detId);
-//      	printf(" lloyd step : %d \n",i);
+      	if(debug) printf(" lloyd step : %d \n",i);
       	check = CheckClusters(Nhits,Npts,Ncls,hr,hz,threshold);
-//      	printf(" check step : %d \n",check);
+      	if(debug) printf(" check step : %d \n",check);
       	if(check == 1) break;
       	else Ncls++;
     }
-//    printf(" Number of cluster : %d x %d \n",clustersPos.size(),clustersPos[0].size());
+    if(debug) printf(" End of steps. Number of cluster : %d x %d \n",clustersPos.size(),clustersPos[0].size());
 
     Ncls = clustersPos[0].size();
 
     initCluster.clear();
     free(data);
 
-//    printf("\n   Set %d cluster Edep \n",Ncls);
+    if(debug) printf("\n   Set %d cluster Edep \n",Ncls);
     SetClusterEnergy(Npts,Ncls,hr,hz,hEdep,threshold);
-//    printf("   Check Edep \n");
+    if(debug) printf("   Check Edep \n");
     
     return CheckEdep(Npts,Ncls,hEdep);
 }
