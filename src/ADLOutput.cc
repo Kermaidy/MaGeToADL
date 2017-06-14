@@ -243,18 +243,18 @@ void ADLOutput::SimulatePulse(int channel){
    
    edepFlag = HitsCluster.LaunchClustering(hits_totnum,hits_xpos,hits_ypos,hits_zpos,hits_edep,hits_iddet);
    
-   if(edepFlag>=edepThrs && edepFlag <= 1.0){
+   if(edepFlag>=edepThrs && edepFlag <= 1.00001){
      std::vector<std::vector<double> > clusters = HitsCluster.GetClusters();
      
      //for(int i = 0;i<clusters[0].size();i++) printf("   Clusters position : %.03f %.03f %.03f %.05f \n", edepFlag, clusters[0][i],clusters[1][i],clusters[3][i]);
      
      ETotDet = ADLDetector->SetADLhits(hits_totnum,clusters[3],clusters[0],clusters[1],clusters[2]);
    }
-   //else 
-     //printf("   Bad clustering : %.03f  \n", edepFlag);
+//   else 
+//     printf("   Bad clustering : %.05f  \n", edepFlag);
    ///////////////////////////////////////////////
  }
- if(edepFlag < edepThrs || edepFlag > 1.0){  
+ if(edepFlag < edepThrs || edepFlag > 1.00001){  
    if(fRecordADLOutPos)
      ETotDet = ADLDetector->SetADLhits(hits_totnum,hits_edep,hits_xpos,hits_ypos,hits_zpos,hits_iddet,hits_ADLpos,hits_isOut);
    else
