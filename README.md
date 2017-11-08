@@ -10,8 +10,11 @@ and compile it
 https://github.com/Kermaidy/MaGeToADL.git
 
 
-3.	Add export LD_LIBRARY_PATH="/path/to/MaGeToADL/lib:$LD_LIBRARY_PATH" 
-to your ${HOME}/.bashrc
+3.	Add to your ${HOME}/.bashrc
+- export ADLDIR="/path/to/adl-4.2/examples/GERDA"
+- export MAGETOADLDIR="/path/to/MaGeToADL"
+- export LD_LIBRARY_PATH="${MAGETOADLDIR}/lib:$LD_LIBRARY_PATH" 
+
 
 
 4.	- Set SWMOD_PATH in LaunchExecModuleIni.sh, LaunchJobConvolution.sh and LaunchJobSimulation.sh
