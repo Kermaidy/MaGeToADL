@@ -24,19 +24,17 @@ public:
   // public functions
   std::string GetSetupFile();
   void SetSetupFile(int);
-  void ConfigureADL(std::string);
+  void ConfigureADL(std::string,int);
   void SetPotentials(std::string);
   void SetPositionOffset(double);
   void CreateADLevent();
   void DeleteADLevent();
-  void SetWaveformAttribute(double,double,double,double);
-  void SetAuxWaveformAttribute(double,double,double,double);
+  void SetWaveformTimeOffset(double,double);
   double SetADLhits(int, Float_t*, Float_t*, Float_t*, Float_t*, Int_t*, Float_t*, Int_t*);
   double SetADLhits(int, Float_t*, Float_t*, Float_t*, Float_t*, Int_t*);
   double SetADLhits(int, std::vector<double> &,std::vector<double> &,std::vector<double> &,std::vector<double> &);
 //  double SetADLhits(int, Float_t&, Float_t&, Float_t&, Float_t&, Int_t&);
   int CalculateTrace();
-  std::vector<std::vector<std::vector<double> > > GetNoise(int);
   int SetADLWaveform(MGTWaveform*);
   int SetADLauxWaveform(MGTWaveform*);
   int GetTraceDim();
@@ -46,13 +44,18 @@ public:
 
 private:
 
-  struct SIMION_PA *ADL_Epot[40];
-  struct SIMION_PA *ADL_Wpot[40];
-  struct SIMION_PA *ADL_Stru[40];
 
-  double GridSize[40];
-  double Center[40];
-  double Height[40];
+  static const int NDET=40;
+
+  struct SIMION_PA *ADL_Epot[NDET];
+  struct SIMION_PA *ADL_Wpot[NDET];
+  struct SIMION_PA *ADL_Stru[NDET];
+
+  double GridSize[NDET];
+  double Center[NDET];
+  double Height[NDET];
+
+  std::vector<double> x0,y0,z0;
 
   std::string detector_setupfile; // ADL configuration file
   int detector_channel; // Detector channel
@@ -70,17 +73,7 @@ private:
 
   struct ADL_EVENT *ADL_evt; // Define ADL event to set hits position and calculate carriers path
   
-  std::vector<std::vector<std::vector<double> > > Noise;    // Store WF noise library
-  std::vector<std::vector<std::vector<double> > > AuxNoise; // Store aux WF noise library
-
-  double Amplitude;     // Signal amplitude in ADC
-  double Baseline;      // Signal baseline
-  double RMS_noise;     // Baseline noise amplitude (assumed to be gaussian)
   double wfPreTrigger;  // Time before trigger (usually half of the signal length)
-
-  double AuxAmplitude;
-  double AuxBaseline;
-  double AuxRMS_noise;
   double AuxwfPreTrigger;
 };
 

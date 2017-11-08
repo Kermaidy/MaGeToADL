@@ -16,9 +16,9 @@ ADL    = ../adl-4.2
 
 LIBS    = -lm  $(ROOTLIBS) -lTreePlayer -lRGL  $(SYSLIBS)
 LIBS   += -L${ADL}/lib/ -lADL-4-2
-PROG    = SimulatePulse
+PROG    = SimulatePulse GetPulserResponse ConvolutePulses
 
-INCFLAGS      = -I$(INC)/ -I${ADL}/include/
+INCFLAGS      = -I$(INC)/ -I${ADL}/include/ -I/lfs/l3/gerda/kermaidy/Analysis/software/src/gelatio/Decoders/
 CXXFLAGS     += $(INCFLAGS)
 LOCALLIBS     = -L$(LIB) -lSIMPULSE
 
@@ -36,6 +36,8 @@ default: all
 all: tools library exe
 	@echo "linking executable"
 	@ln -f -s bin/SimulatePulse_x ./SimulatePulse
+	@ln -f -s bin/GetPulserResponse_x ./GetPulserResponse
+	@ln -f -s bin/ConvolutePulses_x ./ConvolutePulses
 
 tools : $(SRCOBJ)
 exe:    $(EXEOBJ)

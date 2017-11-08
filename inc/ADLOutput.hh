@@ -15,9 +15,13 @@
 
 //---------------------------------------------------------------------------//
 // ROOT declarations
-class TFile;
-class Th1D;
-class TTree;
+#include "TFile.h"
+#include "TH1.h"
+#include "TTree.h"
+#include "TBranch.h"
+#include "TApplication.h"
+#include "TCanvas.h"
+#include "TGraph.h"
 
 //---------------------------------------------------------------------------//
 
@@ -31,8 +35,8 @@ public:
   //destructor
   ~ADLOutput();
 
-  void DefineSchema(std::string);
-  TFile* RunSimulation(std::string);
+  void DefineSchema(std::string,int,int);
+  TFile* RunSimulation(std::string,std::string,int);
   int WriteOutputs(TFile*);
 
   //private  members
@@ -80,6 +84,7 @@ private:
 
   int traceCalculated[NDET]; // Flag to calculate trace in Ge det only once per event
   int setupADLdetPos;    // Used to define the detectors positon offset in ADL only for the 1st event
+  int testPulser;
 
   TFile* fOutputFile;
   TTree* MGTree;
@@ -108,11 +113,6 @@ private:
   size_t iChannel;
   int validChannelCounter;
 
-  double FEP_kev;
-  double FEP_ADC;
-  double Baseline;
-  double RMS_noise;
-  
   /***********************/
 
 };
