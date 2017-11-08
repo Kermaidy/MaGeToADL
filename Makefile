@@ -12,7 +12,7 @@ BIN    = ./bin
 BUILD  = ./build
 LIB    = ./lib
 INC    = ./inc
-ADL    = ../adl-4.2
+ADL    = ../ADL4
 
 LIBS    = -lm  $(ROOTLIBS) -lTreePlayer -lRGL  $(SYSLIBS)
 LIBS   += -L${ADL}/lib/ -lADL-4-2
