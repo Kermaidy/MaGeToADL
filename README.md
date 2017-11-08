@@ -23,10 +23,11 @@ https://github.com/Kermaidy/MaGeToADL.git
 
 
 5.	Create following repositories in /Path/To/MaGeToADL:
-- RawData/ 	-> output ROOT files from MaGe
-- RawPulses/	-> output of ADL raw pulses processing files
-- Tier1/		-> output of pulses convolution – Noise – Signal decay – E.R.
-- Tier2/		-> output of GELATIO 
+- bin/ build/ lib/ JobErrors/ JobOutput/  -> Output of compilation and jobs
+- RawData/ 	 -> output ROOT files from MaGe
+- RawPulses/ -> output of ADL raw pulses processing files
+- Tier1/		 -> output of pulses convolution – Noise – Signal decay – E.R.
+- Tier2/		 -> output of GELATIO 
 
 
 6.	Compile MaGeToADL: “make”
