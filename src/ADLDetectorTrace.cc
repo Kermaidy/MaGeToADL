@@ -60,13 +60,13 @@ void ADLDetectorTrace::SetSetupFile(int channel){
   else oss.str("");
   oss << channel;
 
-  char* envPath = getenv("MAGEDIR");
+  char* envPath = getenv("MAGETOADLDIR");
 
   detector_setupfile = envPath;
 
-  if(channel == 1000){       detector_setupfile += "/adl/configfiles/Det_HADES/ICOAX.txt"; detector_channel = 0;}
-  else if(channel == 1001) { detector_setupfile += "/adl/configfiles/Det_ORTEC/ICOAX.txt"; detector_channel = 0;}
-  else detector_setupfile += "/adl/configfiles/Det_" + oss.str() + "/Det.txt";
+  if(channel == 1000){       detector_setupfile += "/configfiles/Det_HADES/ICOAX.txt"; detector_channel = 0;}
+  else if(channel == 1001) { detector_setupfile += "/configfiles/Det_ORTEC/ICOAX.txt"; detector_channel = 0;}
+  else detector_setupfile += "/configfiles/Det_" + oss.str() + "/Det.txt";
 }
 
 std::string ADLDetectorTrace::GetSetupFile() {return detector_setupfile;}
