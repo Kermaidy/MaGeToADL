@@ -1,34 +1,35 @@
-# ADL_exercise
-Show how to use ADL with 2 detectors in parallel and how to launch jobs.
+MaGeToADL manual
 
 1.	Pre-requisite:
 - MGDO / GELATIO / ROOT / SWMOD
+- Git clone ADL4 @ mppmu GitHub (https://github.com/mppmu/ADL4.git) 
+and compile it
 
-LET’S SET THE ENVIRONMENT
-2.	Create a /path/to/MunichWorkshop repository
 
-3.	Get (https://github.com/mppmu/ADL4.git) and compile ADL4 (make all) in /path/to/MunichWorkshop/ADL4/ repository
+2.	Git clone MaGeToADL @ Kermaidy GitHub account
+https://github.com/Kermaidy/MaGeToADL.git
 
-4.	Add export LD_LIBRARY_PATH="/path/to/MunichWorkshop/testadl/lib:$LD_LIBRARY_PATH" 
+
+3.	Add export LD_LIBRARY_PATH="/path/to/MaGeToADL/lib:$LD_LIBRARY_PATH" 
 to your ${HOME}/.bashrc
 
-5.	Get testadl folder and do “make” in 
-/path/to/MunichWorkshop/testadl/ repository
--> this should produce the executable SimulatePulse
 
-6.	Set SWMOD_PATH in LaunchExecModuleIni.sh and LaunchJobSimulation.sh
-And SCRIPT_PATH in JobScript.sh
+4.	- Set SWMOD_PATH in LaunchExecModuleIni.sh, LaunchJobConvolution.sh and LaunchJobSimulation.sh
+- Set SCRIPT_PATH in JobScript.sh
+- Set GERDA, GELATIO and MGDO paths in the Makefile
 
-LET’S COMPUTE 1 SIMULATION
-7.	Run ./SimulatePulse
--> this should start a loop of 1000 events and produce Tier1 “ADLTest-Tier1.root” output file
 
-8.	Run sh LaunchExecModuleIni.sh ADLTest-Tier1.root .
--> this should start GELATIO and produce Tier2 “ADLTest-Tier2.root” output file
+5.	Create following repositories in /Path/To/MaGeToADL:
+- RawData/ 	-> output ROOT files from MaGe
+- RawPulses/	-> output of ADL raw pulses processing files
+- Tier1/		-> output of pulses convolution – Noise – Signal decay – E.R.
+- Tier2/		-> output of GELATIO 
 
-NOW WITH JOBS
-9.	Run sh JobScript 1
--> this should produce 10 Tier1 “ADLTest_#-Tier1.root” output files
 
-10.	Run sh JobScript 2
-  -> this should produce 10 Tier2 “ADLTest_#-Tier2.root” output files
+6.	Compile MaGeToADL: “make”
+
+
+7.	Check for individual pieces of code (should return informative message):
+- ./SimulatePulses
+- ./ConvolutePulses
+- execModuleIni
