@@ -4,27 +4,29 @@ ROOTGLIBS     = $(shell root-config --glibs)
 
 CXXFLAGS      = -g -Wall $(ROOTCFLAGS)
 
-CC     = gcc
-CXX    = c++ -w
-SRC    = ./src
-EXE    = ./exe
-BIN    = ./bin
-BUILD  = ./build
-LIB    = ./lib
-INC    = ./inc
-ADL    = ../ADL4
+CC      = gcc
+CXX     = c++ -w
+SRC     = ./src
+EXE     = ./exe
+BIN     = ./bin
+BUILD   = ./build
+LIB     = ./lib
+INC     = ./inc
+ADL     = ../ADL4
+GERDA   = /Path/To/gerda
+GELATIO = /Path/To/gelatio
 
 LIBS    = -lm  $(ROOTLIBS) -lTreePlayer -lRGL  $(SYSLIBS)
 LIBS   += -L${ADL}/lib/ -lADL-4-2
 PROG    = SimulatePulse GetPulserResponse ConvolutePulses
 
-INCFLAGS      = -I$(INC)/ -I${ADL}/include/ -I/lfs/l3/gerda/kermaidy/Analysis/software/src/gelatio/Decoders/
+INCFLAGS      = -I$(INC)/ -I${ADL}/include/ -I${GELATIO}/Decoders/
 CXXFLAGS     += $(INCFLAGS)
 LOCALLIBS     = -L$(LIB) -lSIMPULSE
 
 # MGDO
-CXXFLAGS += -I/lfs/l3/gerda/kermaidy/Analysis/software/gerda/linux-scientific-7.2-x86_64/master/include/mgdo
-LIBS += -L/lfs/l3/gerda/kermaidy/Analysis/software/gerda/linux-scientific-7.2-x86_64/master/lib -lMGDOBase -lMGDOTransforms -lMGDORoot -lMGDOGerda
+CXXFLAGS += -I${GERDA}/linux-scientific-7.2-x86_64/master/include/mgdo
+LIBS += -L${GERDA}/linux-scientific-7.2-x86_64/master/lib -lMGDOBase -lMGDOTransforms -lMGDORoot -lMGDOGerda
 
 EXESRC = $(wildcard $(EXE)/*.cc)
 EXEOBJ = $(subst $(EXE),$(BIN)/,$(patsubst %.cc,%_x,$(EXESRC)))
