@@ -12,13 +12,13 @@ BIN     = ./bin
 BUILD   = ./build
 LIB     = ./lib
 INC     = ./inc
-ADL     = ../ADL4
-GERDA   = /Path/To/gerda
-GELATIO = /Path/To/gelatio
+ADL     = ../adl-4.2
+GERDA   = /lfs/l3/gerda/kermaidy/Analysis/software/gerda
+GELATIO = /lfs/l3/gerda/kermaidy/Analysis/software/src/gelatio
 
 LIBS    = -lm  $(ROOTLIBS) -lTreePlayer -lRGL  $(SYSLIBS)
 LIBS   += -L${ADL}/lib/ -lADL-4-2
-PROG    = SimulatePulse GetPulserResponse ConvolutePulses
+PROG    = SimulatePulse GetPulserResponse ConvolutePulses FitElectronicResponse
 
 INCFLAGS      = -I$(INC)/ -I${ADL}/include/ -I${GELATIO}/Decoders/
 CXXFLAGS     += $(INCFLAGS)
@@ -40,6 +40,7 @@ all: tools library exe
 	@ln -f -s bin/SimulatePulse_x ./SimulatePulse
 	@ln -f -s bin/GetPulserResponse_x ./GetPulserResponse
 	@ln -f -s bin/ConvolutePulses_x ./ConvolutePulses
+	@ln -f -s bin/FitElectronicResponse_x ./FitElectronicResponse
 
 tools : $(SRCOBJ)
 exe:    $(EXEOBJ)

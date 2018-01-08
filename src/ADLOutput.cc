@@ -54,6 +54,9 @@ void ADLOutput::DefineSchema(string outputrootfilename, int whichDet, int resetP
 
       if(whichDet == 0){
 	for(int channel=3; channel < NDET; channel++){
+	  if(channel == 11 || channel == 12 || channel == 13 ||
+	     channel == 30 || channel == 31 || channel == 32 ||
+	     channel == 39) continue; //Only consider BEGe detectors
 	  cout << "\r Setup channel " << channel << flush;
 	  ADLDetector->SetSetupFile(channel);
 	  ADLDetector->ConfigureADL(ADLDetector->GetSetupFile(),resetPos); // ADL-4.2
@@ -156,7 +159,7 @@ TFile* ADLOutput::RunSimulation(string InputFilename,std::string isCal, int whic
 
 	int Nevents;
 	if(isCal == "1") Nevents = Tree->GetEntries();
-	else  Nevents = Tree->GetEntries()/50;
+	else  Nevents = Tree->GetEntries()/500;
 
 	for(int i =0;i<Nevents;i++){
 	  if(i % 1000 == 0){

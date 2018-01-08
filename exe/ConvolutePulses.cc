@@ -21,6 +21,7 @@
 #include "MGTWaveform.hh"
 #include "MGTEvent.hh"
 #include "MGTRun.hh"
+#include "MGTypes.hh"
 
 // GELATIO includes
 #include "GETGERDADigitizerData.hh"
@@ -37,16 +38,42 @@ double SamplingFrequency = 0.025;     //GHz
 
 TTree* MGTree;
 
-std::vector<double> GetDetectorRCtau()
+void GetFitParameters(int pole, std::vector<std::vector<double> > &vec1,std::vector<std::vector<double> > &vec2)
 {
-  std::vector<double> vec = {0,0,0,
-			     0.035,0.042,0.060,0.065,0.065,0.095,0.110,0.070,
-			     0,0,0,
-			     0.037,0.065,0.055,0.055,0.055,0.070,0.060,0.040,
-			     0.035,0.045,0.050,0.055,0.060,0.055,0.085,0.065,
-			     0,0,0,
-			     0.035,0.040,0.050,0.062,0.062,0.065,0};
-  return vec;
+  std::string channel, a_decay, tau1_decay, tau2_decay, tau1_RC, tau2_RC, header;
+  std::string filename;
+  if(pole == 1) filename = "./FitElecRespOutput_1pole.txt";
+  else filename = "./FitElecRespOutput_2poles.txt";
+
+  std::cout << "\r Get BEGe detectors optimized E.R. parameters " << pole << std::endl;
+
+  std::ifstream File(filename.c_str());
+
+  if(File)  // Check if the file exists
+    {
+      getline(File,header);
+      while(File.good())  // Loop until reach the eof
+        {
+          File >> channel  >> a_decay >> tau1_decay >> tau2_decay >> tau1_RC >> tau2_RC ;
+          vec1[0].push_back(atof(a_decay.c_str()));   
+          vec1[1].push_back(atof(tau1_decay.c_str()));   
+          vec1[2].push_back(atof(tau2_decay.c_str()));   
+	  vec2[0].push_back(atof(tau1_RC.c_str()));   
+          vec2[1].push_back(atof(tau2_RC.c_str()));   
+         }
+    }
+  else{  // if the file doesn't exist
+    cerr << filename << " not found. Try again" << std::endl;
+    exit(1);
+  }
+
+  File.close();  // Close file
+
+  vec1[0].pop_back();
+  vec1[1].pop_back();
+  vec1[2].pop_back();
+  vec2[0].pop_back();
+  vec2[1].pop_back();
 }
 
 std::vector<double> GetDetectorPulseShape(std::string flag)
@@ -426,8 +453,17 @@ int main(int argc, const char* argv[])
   std::cout << " " << std::endl;
 
   if(argc < 6){
-    std::cerr << "Not enough arguments given" << std::endl;
-    std::cerr << "Try ./ConvolutePulses $INFILENAME $OUTFILENAME $IDSIMU $ISNOISE[0 or 1=Gerda or 2=Gaus] $RMSNOISE[if ISNOISE=2, set AuxWf rms noise and x4 for Wf] $GAIN[-1 for the GERDA array] $BASELINE[-1 for the GERDA array] $ISFILTER[0 or 1(pulser) or 2(RC circuit) or 3(2-poles circuit)] $RCtimeCnst[mus]" << std::endl;
+    std::cerr << "Not enough arguments given "         << std::endl;
+    std::cerr << "Try ./ConvolutePulses "              << std::endl;
+    std::cerr << " $INFILENAME "                       << std::endl;
+    std::cerr << " $OUTFILENAME "                      << std::endl;
+    std::cerr << " $IDSIMU "                           << std::endl;
+    std::cerr << " $ISNOISE[0 or 1=Gerda or 2=Gaus] "  << std::endl;
+    std::cerr << " $RMSNOISE[if ISNOISE=2, set AuxWf rms noise and x4 for Wf] " << std::endl;
+    std::cerr << " $GAIN[-1 for the GERDA array] "     << std::endl;
+    std::cerr << " $BASELINE[-1 for the GERDA array] " << std::endl;
+    std::cerr << " $ISFILTER[0 or 1(pulser) or 2(1-pole circuit) or 3(2-poles circuit)] " << std::endl;
+    std::cerr << " $RCtimeCnst[mus]"                   << std::endl;
     exit(0);
   }
 
@@ -450,11 +486,6 @@ int main(int argc, const char* argv[])
   std::vector<double> Gain;
   if(gain == -1) Gain = GetDetectorPulseShape("gain");
   else Gain.push_back(gain);
-  std::vector<double> RCtau;
-
-  if(filter == 2 && argc == 9) RCtau = GetDetectorRCtau();
-  else if(filter == 2 && argc == 10) for(int i = 0;i<NDET;i++) RCtau.push_back(atof(argv[9]));
-  
 
   std::vector<std::vector<std::vector<double> > > Noise, AuxNoise;
 
@@ -512,6 +543,18 @@ int main(int argc, const char* argv[])
     Pulser = GetTestPulser(0);
     AuxPulser = GetTestPulser(1);
   }
+
+  std::vector<std::vector<double> > DecayCnst(3,std::vector<double>(0)); // 1-amplitude / 2-time constants
+  std::vector<std::vector<double> > ERCnst(2,std::vector<double>(0));    // 2-time constants
+
+  // Recover optimized BEGe detector pulses parameters from E.R. fit routine output
+  if(filter == 2 && argc == 10) for(int i = 0;i<NDET;i++) ERCnst[0].push_back(atof(argv[9]));
+  else if(filter == 2 && argc == 9) GetFitParameters(1, DecayCnst, ERCnst);
+  else GetFitParameters(2, DecayCnst, ERCnst);
+
+  // Parameter of the ORTEC detector
+  //    - RC decay: 0.982818,50.0869,0.451906
+  //    - ER      : 2.06571,140
 
   if(display) std::cout << "Start initializing output " << std::endl;
   // Output ROOT file
@@ -610,7 +653,7 @@ int main(int argc, const char* argv[])
     eventOut->SetAuxWFEncScheme(MGTWaveform::kDiffVarInt);
     eventOut->SetETotal(eventIn->GetETotal());
 
-    MGWaveformTag::EWaveformTag fWaveformTag = MGWaveformTag::kNormal;
+    //    MGWaveformTag::EWaveformTag fWaveformTag = MGWaveformTag::kNormal;
 
     if(debugADL) std::cout << "Event : " << i << std::endl;
 
@@ -642,7 +685,7 @@ int main(int argc, const char* argv[])
       digiData->SetEventNumber(eventIn->GetEventNumber());
       digiData->SetIsMuVetoed(fMuVetoed);
       digiData->SetMuVetoSample(fMuVetoSample);
-      digiData->SetWaveformTag(fWaveformTag);
+      digiData->SetWaveformTag(MGWaveformTag::kNormal);
       if(debugADL) std::cout << "DEBUG: ADL digitizer set" << std::endl;
       
       // Set MGDO waveform 
@@ -663,8 +706,8 @@ int main(int argc, const char* argv[])
 			     << eventIn->GetWaveformID(channel)->GetLength() << " & " 
 			     << eventIn->GetAuxWaveformID(channel)->GetLength() << std::endl;
       
-    waveform->operator=(*ApplyRCdecay(eventIn->GetWaveformID(channel),0.982818,50.0869,0.451906,0));
-    auxwaveform->operator=(*ApplyRCdecay(eventIn->GetAuxWaveformID(channel),0.982818,50.0869,0.451906,1));
+      waveform->operator=(*ApplyRCdecay(eventIn->GetWaveformID(channel),DecayCnst[0][channel],DecayCnst[1][channel],DecayCnst[2][channel],0));
+      auxwaveform->operator=(*ApplyRCdecay(eventIn->GetAuxWaveformID(channel),DecayCnst[0][channel],DecayCnst[1][channel],DecayCnst[2][channel],1));
 
       if(filter == 1){
 	if(debugADL) std::cout << "Convolute raw pulses with test pulser response " << std::endl;
@@ -672,14 +715,14 @@ int main(int argc, const char* argv[])
 	auxwaveform->operator=(*ConvoluteWF(auxwaveform,AuxPulser[channel],auxscale,1));
       }
       else if(filter == 2){
-	if(debugADL) std::cout << "Convolute raw pulses with RC circuit response " << channel << " " << RCtau[channel]  << std::endl;
-	waveform->operator=(*ApplyRC(waveform,RCtau[channel],0));
-	auxwaveform->operator=(*ApplyRC(auxwaveform,RCtau[channel],1));
+	if(debugADL) std::cout << "Convolute raw pulses with RC circuit response " << channel << " " << ERCnst[0][channel]  << std::endl;
+	waveform->operator=(*ApplyRC(waveform,ERCnst[0][channel],0));
+	auxwaveform->operator=(*ApplyRC(auxwaveform,ERCnst[0][channel],1));
       }
       else if(filter == 3){
-	if(debugADL) std::cout << "Convolute raw pulses with 2 poles circuit response " << channel << " 2.06571 140 "  << std::endl;
-	waveform->operator=(*Apply2poles(waveform,2.06571*1.,140*1.,0));
-	auxwaveform->operator=(*Apply2poles(auxwaveform,2.06571*1.,140*1.,1));
+	if(debugADL) std::cout << "Convolute raw pulses with 2 poles circuit response " << channel << "  " << ERCnst[0][channel] << "  " << ERCnst[1][channel] << std::endl;
+	waveform->operator=(*Apply2poles(waveform,ERCnst[0][channel],ERCnst[1][channel],0));
+	auxwaveform->operator=(*Apply2poles(auxwaveform,ERCnst[0][channel],ERCnst[1][channel],1));
       }
       
       if(filter != 0){
