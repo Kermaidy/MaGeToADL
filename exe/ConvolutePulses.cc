@@ -463,7 +463,8 @@ int main(int argc, const char* argv[])
     std::cerr << " $GAIN[-1 for the GERDA array] "     << std::endl;
     std::cerr << " $BASELINE[-1 for the GERDA array] " << std::endl;
     std::cerr << " $ISFILTER[0 or 1(pulser) or 2(1-pole circuit) or 3(2-poles circuit)] " << std::endl;
-    std::cerr << " $RCtimeCnst[mus]"                   << std::endl;
+    std::cerr << " $RCtimeCnst[mus] (if manual E.R.)"  << std::endl;
+    std::cerr << " $RCdecaytimeCnst[mus] (if manual E.R.)" << std::endl;
     exit(0);
   }
 
@@ -548,8 +549,11 @@ int main(int argc, const char* argv[])
   std::vector<std::vector<double> > ERCnst(2,std::vector<double>(0));    // 2-time constants
 
   // Recover optimized BEGe detector pulses parameters from E.R. fit routine output
-  if(filter == 2 && argc == 10) for(int i = 0;i<NDET;i++) ERCnst[0].push_back(atof(argv[9]));
-  else if(filter == 2 && argc == 9) GetFitParameters(1, DecayCnst, ERCnst);
+  if(filter == 2){
+	if(argc == 11) for(int i = 0;i<NDET;i++){ ERCnst[0].push_back(atof(argv[9])); DecayCnst[0].push_back(1.); DecayCnst[0].push_back(atof(argv[10])); DecayCnst[0].push_back(0);}
+	else if(argc == 10) for(int i = 0;i<NDET;i++) ERCnst[0].push_back(atof(argv[9]));
+  	else if(argc == 9) GetFitParameters(1, DecayCnst, ERCnst);
+  }
   else GetFitParameters(2, DecayCnst, ERCnst);
 
   // Parameter of the ORTEC detector
