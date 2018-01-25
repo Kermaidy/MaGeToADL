@@ -23,8 +23,36 @@ ADLDetectorTrace::~ADLDetectorTrace() {
 
 //---------------------------------------------------------------------------//
 
+void GetCustomDetPosition(int NDET, std::vector<double> &x0, std::vector<double> &y0, std::vector<double> &z0)
+{
+  // Only 1-detector case
+
+  std::string header, StringTmp, xtmp, ytmp, ztmp;
+  std::ifstream File("CustomDetectorPosition.txt");
+
+  if(File)  // Check if the file exists
+    {
+      getline(File,header);
+      File >> StringTmp  >> xtmp >> ytmp >> ztmp;
+    }
+  else{  // if the file doesn't exist
+    cerr << "CustomDetectorPosition.txt not found. Try again" << std::endl;
+    exit(1);
+  }
+
+  File.close();  // Close file
+
+  for(int i = 0;i<NDET;i++){
+    x0.push_back(atof(xtmp.c_str())); 
+    y0.push_back(atof(ytmp.c_str())); 
+    z0.push_back(atof(ztmp.c_str())); 
+  }
+}
+
 void GetMaGeDetPosition(std::vector<double> &x0, std::vector<double> &y0, std::vector<double> &z0)
 {
+  // Full GERDA detector array case
+
   std::string header, StringTmp, xtmp, ytmp, ztmp;
   std::ifstream File("GERDADetectorPosition.txt");
 
@@ -95,8 +123,10 @@ void ADLDetectorTrace::ConfigureADL(std::string setupfile, int resetPos)
   if(detector_channel >= 0)  Height[detector_channel] = 0; // No need to correct for z-offset for single detectors
   else                       Height[detector_channel] = GetSimionHeight()/2.;
 
-  if(resetPos)
+  if(resetPos == 1)
     GetMaGeDetPosition(x0,y0,z0); // If MaGe detectors are not centered around zero, correct for this.    
+  else if(resetPos == 2)
+    GetCustomDetPosition(NDET,x0,y0,z0);
   else{
     x0.assign(NDET,0.);
     y0.assign(NDET,0.);
