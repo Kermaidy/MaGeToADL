@@ -550,7 +550,7 @@ int main(int argc, const char* argv[])
 
   // Recover optimized BEGe detector pulses parameters from E.R. fit routine output
   if(filter == 2){
-	if(argc == 11) for(int i = 0;i<NDET;i++){ ERCnst[0].push_back(atof(argv[9])); DecayCnst[0].push_back(1.); DecayCnst[0].push_back(atof(argv[10])); DecayCnst[0].push_back(0);}
+	if(argc == 11) for(int i = 0;i<NDET;i++){ ERCnst[0].push_back(atof(argv[9])); DecayCnst[0].push_back(1.); DecayCnst[1].push_back(atof(argv[10])); DecayCnst[2].push_back(0);}
 	else if(argc == 10) for(int i = 0;i<NDET;i++) ERCnst[0].push_back(atof(argv[9]));
   	else if(argc == 9) GetFitParameters(1, DecayCnst, ERCnst);
   }
