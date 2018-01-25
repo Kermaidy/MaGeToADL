@@ -69,9 +69,7 @@ void ADLOutput::DefineSchema(string outputrootfilename, int whichDet, int resetP
 	ADLDetector->ConfigureADL(ADLDetector->GetSetupFile(),resetPos); // ADL-4.2
       }
       else{
-	int channel = -1;
-	if(whichDet == 1000) channel = 1000;
-	else if(whichDet == 1001) channel = 1001;
+	int channel = whichDet;
 	cout << "\r Setup channel " << channel << flush;
 	ADLDetector->SetSetupFile(channel);
 	ADLDetector->ConfigureADL(ADLDetector->GetSetupFile(),resetPos); // ADL-4.2
@@ -188,7 +186,7 @@ TFile* ADLOutput::RunSimulation(string InputFilename,std::string isCal, int whic
 	  event->SetAuxWFEncScheme(MGTWaveform::kDiffVarInt);
 	  event->SetETotal(hits_tote);
 	  validChannelCounter = 0;
-	  	  
+	 
 	  //Simulate pulses with ADL once per event
 	  if(whichDet == 0){
 	    for(int j=0;j<NDET;j++) traceCalculated[j] = 0;
@@ -220,12 +218,13 @@ TFile* ADLOutput::RunSimulation(string InputFilename,std::string isCal, int whic
 */
 	    }
 	  }
+	  
 	  else if(whichDet == 1000 && hits_tote > 1000){ SimulatePulse(1000); traces++;}
 	  else if(whichDet == 1001 && hits_tote > 1000){ SimulatePulse(1001); traces++;}
 	  else{
 	    for(int j=0;j<NDET;j++) traceCalculated[j] = 0;
 	    for(int j=0;j<hits_totnum; j++) {
-	      if(hits_iddet[j] == whichDet && traceCalculated[hits_iddet[j]] == 0 && hits_tote > 1.){
+	      if(hits_iddet[j] == whichDet-2 && traceCalculated[hits_iddet[j]] == 0 && hits_tote > 1.){
 		SimulatePulse(hits_iddet[j]);
 		traceCalculated[hits_iddet[j]] = 1;
 		traces++;
@@ -251,7 +250,7 @@ TFile* ADLOutput::RunSimulation(string InputFilename,std::string isCal, int whic
 void ADLOutput::SimulatePulse(int channel){
  
   
-  int debugADL = 0;
+  int debugADL = 1;
 
   double edepThrs = 0.9999; // Threshold requiring a certain fraction of energy deposition in clusters as compared to individual hits
   double edepFlag = 0;     // Energy deposition ratio between detectors and clusters

@@ -95,7 +95,8 @@ void ADLDetectorTrace::SetSetupFile(int channel){
 
   if(channel == 1000){       detector_setupfile += "configfiles/Det_HADES/ICOAX.txt"; detector_channel = 0;}
   else if(channel == 1001) { detector_setupfile += "configfiles/Det_ORTEC/ICOAX.txt"; detector_channel = 0;}
-  else detector_setupfile += "configfiles/Det_" + oss.str() + "/BEGe_" + oss.str() + ".txt";
+  else if(channel == 1002) { detector_setupfile += "configfiles/Det_BEGe/BEGe.txt"; detector_channel = 0;}
+  else {detector_setupfile += "configfiles/Det_" + oss.str() + "/BEGe_" + oss.str() + ".txt"; detector_channel = 0;}
 }
 
 std::string ADLDetectorTrace::GetSetupFile() {return detector_setupfile;}
