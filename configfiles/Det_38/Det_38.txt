@@ -1,0 +1,61 @@
+###################################################
+#Geometry file for a typical BEGe detector
+#  Here the example of Chronos
+###################################################
+
+BEGE_G_GrooveDepth               0.20 ! Depth of the groove
+BEGE_G_GrooveWidth               0.30 ! Width of the groove
+BEGE_G_PointContactRadius        0.75 ! Standard Canberra size
+BEGE_G_GrooveInnerRadius         0.75 ! usually = CenContactRadius
+BEGE_G_PointContactDepth        -0.01 ! (negative values=one grid size)
+BEGE_G_PasLayThickness           0.00 ! Passivation layer thickness
+BEGE_G_Radius                   3.431 ! 
+BEGE_G_Height                   2.834 ! 
+BEGE_G_SurfaceContactDepth      0.099 ! 
+
+BEGE_G_EdgeRadius               0.906 ! Radius of the start of the cut
+BEGE_G_EdgeHeight                1.20 ! Height to which the cut reaches
+
+BEGE_G_ImpTop                   -2.40 ! Linear top impurity gradient
+BEGE_G_ImpBot                   -2.50 ! Linear bottom impurity gradient
+
+BEGE_G_Spacing                   0.00 ! Spacing around the diode
+BEGE_G_ExtGroundWidth            0.00 ! External ground potential (if in a grounded container)
+
+SIMION_G_GridSize                0.01 ! grid size in cm
+SIMION_G_EpsScale               16.0  ! epsilon scale relative to epsilon_0
+SIMION_G_EpsExtScale             1.0  ! external permittivity (usually 1=vacuum)
+SIMION_G_Description              configfiles/Det_38/Generic
+SIMION_G_Spacing                 0.00 ! No spacing
+
+SIMION_G_Dimension               2    ! 2 for 2D 3 for 3D
+SIMION_G_Voltage                 4000 ! Canberra data sheet
+
+SIMION_G_RhoScale                1.0  ! space charge density scale, relative to 10^10/cm^3
+SIMION_G_Tol                    1e-10 ! required tolerance for solution
+SIMION_G_DEBUG                   0    ! print extra information if != 0
+
+ADL_G_SIMION_SmallPot            1e-6 ! [V] Small potential, Defines e.g. ADL_In_Detector_SIMION
+
+ADL_G_Wpot              configfiles/Det_38/Generic_Wpot.pa
+ADL_G_Epot              configfiles/Det_38/Generic_Epot.pa
+ADL_G_Stru                       configfiles/Det_38/Generic_Stru.pa
+
+ADL_G_VERSION  4.2
+ADL_G_DEBUG     0               ! 0: Debugging mode switched OFF
+
+SIMION_GEOMETRY_BEGE              configfiles/Det_38/Det_38.txt 
+SIMION_SOLVER_INHOMOG              configfiles/Det_38/Det_38.txt
+
+ADL_FIELDS_SIMION              configfiles/Det_38/Det_38.txt 
+ADL_EVENT              configfiles/EVENT.txt
+ADL_TIME_FAST              configfiles/TIME_FAST.txt
+ADL_TRACES_NUMRES              configfiles/TRACES_NUMRES.txt
+ADL_TRAPPING              configfiles/TRAPPING.txt
+ADL_READWRITE              configfiles/READWRITE_TXT.txt
+ADL_DRIFT_GE              configfiles/DRIFT_GE.txt
+ADL_CONVL_DUMMY              configfiles/CONV_DUMMY.txt
+
+ADL_SCALE_0                         1 ! Epot.pa0 (Electrical field space charge)
+
+

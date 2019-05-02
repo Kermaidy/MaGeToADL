@@ -1,0 +1,63 @@
+COAX_G_Radius                    4.00 ! Radius of the crystal
+COAX_G_Height                   10.70 ! Heigth of the crystal
+
+COAX_G_EdgeRadius                3.2  ! Radius of the start of the cut
+COAX_G_EdgeHeight                1.1  ! Height to which the cut reaches
+
+COAX_G_BorHoleDepth              9.40 ! Borehole depth
+COAX_G_BorHoleRadius             0.70 ! Borehole radius
+
+COAX_G_CenContactRadius          1.50 ! Center contact radius (wrap around)
+COAX_G_CenContactDepth          -0.01 ! Center contact thickness
+COAX_G_OutContactDepth           0.23 ! Dead layer thickness
+COAX_G_OutContactRadius          1.80 ! usually = GrooveWidth + GrooveInnerRadius (wrap around)
+
+COAX_G_GrooveDepth               0.20 ! Depth of the groove
+COAX_G_GrooveWidth               0.30 ! Width of the groove
+COAX_G_GrooveInnerRadius         1.50 ! usually = CenContactRadius
+COAX_G_PasLayThickness           0.00 ! Passivation layer thickness
+
+COAX_G_ImpTop                   -0.90 ! Top impurity concentration
+COAX_G_ImpBot                   -0.90 ! Bottom impurity concentration
+
+SIMION_G_GridSize                0.01 ! grid size in cm
+SIMION_G_EpsScale               16.0  ! epsilon scale relative to epsilon_0
+SIMION_G_EpsExtScale             1.0  ! external permittivity (usually 1=vacuum)
+SIMION_G_Description   Coax !  
+
+SIMION_G_Dimension               2    ! 2 for 2D 3 for 3D
+SIMION_G_Voltage              3500    ! Canberra data sheet
+
+SIMION_G_RhoScale                1.0  ! space charge density scale, relative to 10^10/cm^3
+SIMION_G_Tol                    1e-10 ! required tolerance for solution
+SIMION_G_DEBUG                   0    ! print extra information if != 0
+
+COAX_G_ExtGroundWidth            0.00 ! External ground potential (if in a grounded container)
+COAX_G_Spacing                   0.00 ! No spacing
+
+ADL_G_SIMION_SmallPot            1e-6 ![V] Small potential, Defines e.g. ADL_In_Detector_SIMION
+ADL_G_Temp                         90 ![K]
+ADL_G_RCtau                      0.00 ![mus]
+
+ADL_G_Wpot              configfiles/Det_30/Coax_Wpot.pa ! Location where the weighting potential is $
+ADL_G_Epot              configfiles/Det_30/Coax_Epot.pa ! Location where the electric potential is s$
+ADL_G_Stru              configfiles/Det_30/Coax_Stru.pa ! Location where the structural potential is$
+
+ADL_G_VERSION   4.2
+ADL_G_DEBUG     1               #0: Debugging mode switched OFF
+
+ADL_FIELDS_SIMION	configfiles/Det_30/Det_30.txt
+ADL_EVENT               configfiles/EVENT.txt
+ADL_TIME_FAST           configfiles/TIME_FAST.txt
+ADL_TRACES_NUMRES	configfiles/TRACES_NUMRES.txt
+ADL_TRAPPING            configfiles/TRAPPING.txt
+ADL_READWRITE           configfiles/READWRITE_TXT.txt
+ADL_DRIFT_GE            configfiles/DRIFT_GE.txt
+ADL_CONVL_DUMMY         configfiles/CONV_DUMMY.txt
+
+SIMION_GEOMETRY_COAX    configfiles/Det_30/Det_30.txt
+SIMION_SOLVER_INHOMOG   configfiles/Det_30/Det_30.txt
+
+ADL_SCALE_0                         1 !Epot.pa0 (Electrical field space charge)
+
+

@@ -1,0 +1,9 @@
+###################################################
+# No idea what this is doing, don't touche        #
+###################################################
+
+ADL_G_TIME_CHAN		0		    #Defines from which channel time is derived
+ADL_G_TIME_WIDTH	1                   #Trigger Filter Length [in ticks]
+ADL_G_TIME_GAP		0                   #Trigger Filter Gap [in ticks]
+ADL_G_TIME_BEGIN	0                   #Beginposition in Trace for search trigger
+ADL_G_TIME_END		100		    #Endposition in Trace for search trigger

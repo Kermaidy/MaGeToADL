@@ -38,6 +38,29 @@ double SamplingFrequency = 0.025;     //GHz
 
 TTree* MGTree;
 
+void PrintHelp()
+{
+  fprintf(stderr,"  \n");
+  fprintf(stderr," HELP : \n");
+  fprintf(stderr,"    usage :    ./ConvolutePulses -i x.root -option2 yyy .... \n");
+  fprintf(stderr,"    -i *       ->input root filename \n");
+  fprintf(stderr,"    -ip *	 ->input root path (default:.../MaGeToADL/RawPulses \n");
+  fprintf(stderr,"    -op *	 ->output root path (default:.../MaGeToADL/Tier1 \n");
+  fprintf(stderr,"    -d  *	 ->DebugADL 0=Off, 1=On (Default: 0) \n");
+  fprintf(stderr,"    -isNoise * ->[0 or 1=Gerda or 2=Gaus] if ISNOISE=2 \n");
+  fprintf(stderr,"    -RMS *     -> set AuxWf rms noise and x4 for Wf \n");
+  fprintf(stderr,"    -idSimu *  -> choose a noise file ? \n");
+  fprintf(stderr,"    -gain *    -> enter ER gain parameter manually \n");
+  fprintf(stderr,"    -bl *      -> enter baseline parameter manually \n");
+  fprintf(stderr,"    -filter *  ->0 or 1(pulser) or 2(1-pole circuit) or 3(2-poles circuit)  \n");
+  fprintf(stderr,"    -h         -> this help \n");
+
+  fprintf(stderr,"  \n");
+
+  exit(1);
+}
+
+
 void GetFitParameters(int pole, std::vector<std::vector<double> > &vec1,std::vector<std::vector<double> > &vec2)
 {
   std::string channel, a_decay, tau1_decay, tau2_decay, tau1_RC, tau2_RC, header;
@@ -131,7 +154,7 @@ std::vector<std::vector<std::vector<double> > > GetNoise(int isAux, std::string 
   ostringstream oss;
     //    oss << filenumber;
     
-    string noisefilename = "/lfs/l3/gerda/akirsch/gerda-BEGesimulation/run-58-59-60-61-62-63-64_Results/output/noise_library/noiseLibrary_all_";
+    string noisefilename = "/lfs/l1/gerda/akirsch/gerda-BEGesimulation/run-58-59-60-61-62-63-64_Results/output/noise_library/noiseLibrary_all_";
     noisefilename += idsimu + ".root";
     
     TFile* fNoiseFile = new TFile(noisefilename.c_str(),"READ");
@@ -231,7 +254,7 @@ std::vector<std::vector<double> > GetTestPulser(int isAux)
   TTree* PulserTree = 0;
   TBranch* BranchTmp = 0;
   
-  std::string PulseFilename = "/lfs/l3/gerda/kermaidy/Analysis/software/src/MaGeToADL/PulserLibrary.root";
+  std::string PulseFilename = "/lfs/l1/gerda/kermaidy/Analysis/software/src/MaGeToADL/PulserLibrary.root";
   std::string treename = "Pulser";
 
   TFile* RootFile = new TFile(PulseFilename.c_str(),"READ");
@@ -452,30 +475,35 @@ int main(int argc, const char* argv[])
   std::cout << "Enter in ConvolutePulses " << std::endl;
   std::cout << " " << std::endl;
 
-  if(argc < 6){
-    std::cerr << "Not enough arguments given "         << std::endl;
-    std::cerr << "Try ./ConvolutePulses "              << std::endl;
-    std::cerr << " $INFILENAME "                       << std::endl;
-    std::cerr << " $OUTFILENAME "                      << std::endl;
-    std::cerr << " $IDSIMU "                           << std::endl;
-    std::cerr << " $ISNOISE[0 or 1=Gerda or 2=Gaus] "  << std::endl;
-    std::cerr << " $RMSNOISE[if ISNOISE=2, set AuxWf rms noise and x4 for Wf] " << std::endl;
-    std::cerr << " $GAIN[-1 for the GERDA array] "     << std::endl;
-    std::cerr << " $BASELINE[-1 for the GERDA array] " << std::endl;
-    std::cerr << " $ISFILTER[0 or 1(pulser) or 2(1-pole circuit) or 3(2-poles circuit)] " << std::endl;
-    std::cerr << " $RCtimeCnst[mus] (if manual E.R.)"  << std::endl;
-    std::cerr << " $RCdecaytimeCnst[mus] (if manual E.R.)" << std::endl;
-    exit(0);
-  }
+ string inputrootpath="./RawPulses/";
+ string rootfilename,idSimu="1";
+ string outputrootpath="./Tier1/";
+ int isNoise=0,RMSnoise=0,filter=3;
+ double gain=-1.,baseline=-1.;
+ int debug =0;
+ int i=0;
+ while(++i<argc){
+   const char* opt=argv[i];
 
-  std::string wfInRootFilename = argv[1];
-  std::string wfOutRootFilename = argv[2];
-  std::string idSimu = argv[3];
-  int isNoise = atoi(argv[4]);
-  int RMSnoise = atof(argv[5]);
-  double gain = atof(argv[6]);
-  double baseline = atof(argv[7]);
-  int filter = atoi(argv[8]);
+   if(strcmp(opt,"-d")==0)	 sscanf(argv[++i],"%d",&debugADL);      //debug mode 0=off, 1=On
+   else if(strcmp(opt,"-ip")==0) inputrootpath=argv[++i];                   // specify input path
+   else if(strcmp(opt,"-op")==0) outputrootpath=argv[++i];                  // specify output path
+   else if(strcmp(opt,"-i")==0) rootfilename=argv[++i];                    // specify input filename
+   else if(strcmp(opt,"-h")==0)  PrintHelp();
+   else if(strcmp(opt,"-gain")==0) gain=atof(argv[++i]);            //input the gain manually
+   else if(strcmp(opt,"-bl")==0) baseline=atof(argv[++i]);            //input the baseline manually
+   else if(strcmp(opt,"-filter")==0) filter=atoi(argv[++i]);            //0 or 1(pulser) or 2(1-pole circuit) or 3(2-poles circuit)
+   else if(strcmp(opt,"-isNoise")==0) sscanf(argv[i++],"%d",&isNoise);   //[0 or 1=Gerda or 2=Gaus]
+   else if(strcmp(opt,"-RMS")==0)  RMSnoise=atoi(argv[++i]);  //if ISNOISE=2, set AuxWf rms noise and x4 for Wf 
+   else if(strcmp(opt,"-idSimu")==0) idSimu=argv[++i];        //
+   else {
+   cout << "You did not provide rootfilename " << endl;
+   }
+ }	
+
+
+  std::string wfInRootFilename = inputrootpath+rootfilename;
+  std::string wfOutRootFilename = outputrootpath+rootfilename;
 
   double scale = 1., auxscale = 1.;
 
@@ -627,10 +655,10 @@ int main(int argc, const char* argv[])
   int Nentries = tree->GetEntries();
   clock_t start = clock(), end;
   double cpu_time_used;
-
+  std::cout << "Tree entries : " << Nentries << std::endl;
   if(display) std::cout << "Tree entries : " << Nentries << std::endl;
   
-  for(int i=1;i<Nentries;i++){
+  for(int i=0;i<Nentries;i++){
     if(i % 1000 == 0){
       end = clock();
       cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;

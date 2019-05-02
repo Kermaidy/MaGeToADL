@@ -6,7 +6,10 @@
 #include "TTree.h"
 #include "TBranch.h"
 
+#include "ADLDetectorTrace.hh"
+
 using namespace std;
+string configfile;
 
 //---------------------------------------------------------------------------//
 ADLDetectorTrace::ADLDetectorTrace(int debug, int channel){
@@ -14,70 +17,50 @@ ADLDetectorTrace::ADLDetectorTrace(int debug, int channel){
   debugADL = debug;
   SetADLDebug(debugADL);
   detector_channel = channel;
+  x0.assign(NDET,0.);
+  y0.assign(NDET,0.);
+  z0.assign(NDET,0.);
+  inv.assign(NDET,1);
 }
-
 //---------------------------------------------------------------------------//
 
 ADLDetectorTrace::~ADLDetectorTrace() {
 }
 
 //---------------------------------------------------------------------------//
+//std::vector<double> &x0, std::vector<double> &y0, std::vector<double> &z0
 
-void GetCustomDetPosition(int NDET, std::vector<double> &x0, std::vector<double> &y0, std::vector<double> &z0)
-{
-  // Only 1-detector case
-
-  std::string header, StringTmp, xtmp, ytmp, ztmp;
-  std::ifstream File("CustomDetectorPosition.txt");
-
-  if(File)  // Check if the file exists
-    {
-      getline(File,header);
-      File >> StringTmp  >> xtmp >> ytmp >> ztmp;
-    }
-  else{  // if the file doesn't exist
-    cerr << "CustomDetectorPosition.txt not found. Try again" << std::endl;
-    exit(1);
-  }
-
-  File.close();  // Close file
-
-  for(int i = 0;i<NDET;i++){
-    x0.push_back(atof(xtmp.c_str())); 
-    y0.push_back(atof(ytmp.c_str())); 
-    z0.push_back(atof(ztmp.c_str())); 
-  }
-}
-
-void GetMaGeDetPosition(std::vector<double> &x0, std::vector<double> &y0, std::vector<double> &z0)
-{
-  // Full GERDA detector array case
-
-  std::string header, StringTmp, xtmp, ytmp, ztmp;
-  std::ifstream File("GERDADetectorPosition.txt");
+vector<int> ADLDetectorTrace::ReadConfigfile(string file){
+  // cout<<"configfile1= "<<file<<endl;
+  std::string header, StringTmp,idtmp, xtmp, ytmp, ztmp, BLtmp,Atmp, Gtmp, invtmp;
+  std::ifstream File(file.c_str());
 
   if(File)  // Check if the file exists
     {
       getline(File,header);
-      while(File.good())  // Loop until reach the eof
-        {
-          File >> StringTmp  >> xtmp >> ytmp >> ztmp;
-          x0.push_back(atof(xtmp.c_str()));  
-          y0.push_back(atof(ytmp.c_str()));  
-          z0.push_back(atof(ztmp.c_str()));  
-        }
+      while(File.good()){
+	File >> StringTmp  >>  idtmp  >>  xtmp  >>  ytmp  >>  ztmp  >>  BLtmp  >>  Atmp  >>  Gtmp  >>  invtmp ;
+      channels.push_back(atoi(StringTmp.c_str()));  //available detector channel #
+      x0[channels.back()] = atof(xtmp.c_str()); 
+      y0[channels.back()] = atof(ytmp.c_str()); 
+      z0[channels.back()] = atof(ztmp.c_str());
+      inv[channels.back()] = atoi(invtmp.c_str());
+      }
     }
   else{  // if the file doesn't exist
-    cerr << "GERDADetectorPosition.txt not found. Try again" << std::endl;
+    cerr << "configfile not found. Try again" << std::endl;
     exit(1);
   }
 
-  File.close();  // Close file
-
+  File.close();  // Close file 
+  channels.pop_back(); 
   x0.pop_back();
   y0.pop_back();
   z0.pop_back();
-}
+  return channels;
+}  
+
+
 
 void ADLDetectorTrace::SetSetupFile(int channel){
 
@@ -88,15 +71,13 @@ void ADLDetectorTrace::SetSetupFile(int channel){
   else oss.str("");
   oss << channel;
 
-  char* envPath = getenv("MAGETOADLDIR");
+  char* envPath = getenv("ADLDIR");
 
-  //detector_setupfile = envPath;
-  detector_setupfile = "";
-
-  if(channel == 1000){       detector_setupfile += "configfiles/Det_HADES/ICOAX.txt"; detector_channel = 0;}
-  else if(channel == 1001) { detector_setupfile += "configfiles/Det_ORTEC/ICOAX.txt"; detector_channel = 0;}
-  else if(channel == 1002) { detector_setupfile += "configfiles/Det_BEGe/BEGe.txt"; detector_channel = 0;}
-  else {detector_setupfile += "configfiles/Det_" + oss.str() + "/BEGe_" + oss.str() + ".txt"; detector_channel = 0;}
+  detector_setupfile = envPath;
+ // detector_setupfile = "";
+ // detector_setupfile += "configfiles/Det_ORTEC/ICOAX.txt"; detector_channel = 0;}
+ 
+  detector_setupfile += "configfiles/Det_" + oss.str() + "/Det_" + oss.str() + ".txt";
 }
 
 std::string ADLDetectorTrace::GetSetupFile() {return detector_setupfile;}
@@ -114,26 +95,18 @@ void ADLDetectorTrace::ConfigureADL(std::string setupfile, int resetPos)
   SetupFields(const_cast<char*>(setupfile.c_str()));
 
   if(debugADL) cout<<"Store fields"<<endl;
-
+  
   ADL_Epot[detector_channel] = GetADLEpot();
   ADL_Wpot[detector_channel] = GetADLWpot();
   ADL_Stru[detector_channel] = GetADLStru();
 
   GridSize[detector_channel] = GetSimionGridSize();
   Center[detector_channel]   = GetSimionCenter();
-  if(detector_channel >= 0)  Height[detector_channel] = 0; // No need to correct for z-offset for single detectors
-  else                       Height[detector_channel] = GetSimionHeight()/2.;
+  //  if(detector_channel >= 0)  Height[detector_channel] = 0; // No need to correct for z-offset for single detectors
+  //  else                       Height[detector_channel] = GetSimionHeight()/2.;
+  Height[detector_channel] = GetSimionHeight()/2.;
 
-  if(resetPos == 1)
-    GetMaGeDetPosition(x0,y0,z0); // If MaGe detectors are not centered around zero, correct for this.    
-  else if(resetPos == 2)
-    GetCustomDetPosition(NDET,x0,y0,z0);
-  else{
-    x0.assign(NDET,0.);
-    y0.assign(NDET,0.);
-    z0.assign(NDET,0.);
-  }
-
+ 
   if(debugADL) 
     std::cout << detector_channel << "       " << 
     ADL_Epot[detector_channel]->h.nx  << " " << 
@@ -162,15 +135,15 @@ void ADLDetectorTrace::SetPotentials(std::string setupfile)
     SetSimionHeight(Height[detector_channel]);
 }
 
-void ADLDetectorTrace::SetPositionOffset(double inv){
+void ADLDetectorTrace::SetPositionOffset(int ch){
 
-  inverted = inv;
+  inverted = inv[ch];
 
   gridsize = GetSimionGridSize();
   xcenter  = Center[detector_channel] - x0[detector_channel];              //center of detector in cm
   ycenter  = Center[detector_channel] - y0[detector_channel];              //center of detector in cm
   height   = Height[detector_channel] - z0[detector_channel];              //bottom of detector in cm
-
+  // cout << "z0 : " << z0[detector_channel] << " Height : " << Height[detector_channel] << " height : " << height <<endl;
   if(debugADL){
     std::cout << "DEBUG: ADL detector gridsize : " << gridsize          << std::endl;
     std::cout << "DEBUG: ADL detector center   : " << GetSimionCenter() << std::endl;
@@ -197,14 +170,14 @@ void ADLDetectorTrace::SetWaveformTimeOffset(double wfpretrigger,double auxwfpre
 }
 
 double ADLDetectorTrace::SetADLhits(int hits_totnum, std::vector<double> &hits_edep, std::vector<double> &hits_xpos, std::vector<double> &hits_zpos, std::vector<double> &hits_iddet){
-  
+ 
   double ETotDet = 0;
   int j = 0;
    for(Int_t i = 0;i<hits_totnum;i++){
-    ADL_evt->HP.Eint[j]   = 0;             //Energy of interaction
-    ADL_evt->HP.Pos[j][0] = 0;	  //Position where this interaction occures in the ADL referential
-    ADL_evt->HP.Pos[j][1] = 0;
-    ADL_evt->HP.Pos[j][2] = 0;
+    ADL_evt->HP.Eint[i]   = 0;             //Energy of interaction
+    ADL_evt->HP.Pos[i][0] = 0;	  //Position where this interaction occures in the ADL referential
+    ADL_evt->HP.Pos[i][1] = 0;
+    ADL_evt->HP.Pos[i][2] = 0;
   } 
   for(Int_t i = 0;i<hits_totnum;i++){
     
@@ -232,21 +205,29 @@ double ADLDetectorTrace::SetADLhits(int hits_totnum, std::vector<double> &hits_e
 }
 
 double ADLDetectorTrace::SetADLhits(int hits_totnum, Float_t*hits_edep, Float_t*hits_xpos, Float_t*hits_ypos, Float_t*hits_zpos, Int_t*hits_iddet){
-  
+ 
   double ETotDet = 0;
   int j = 0;
    for(Int_t i = 0;i<hits_totnum;i++){
-    ADL_evt->HP.Eint[j]   = 0;             //Energy of interaction
-    ADL_evt->HP.Pos[j][0] = 0;	  //Position where this interaction occures in the ADL referential
-    ADL_evt->HP.Pos[j][1] = 0;
-    ADL_evt->HP.Pos[j][2] = 0;
-  } 
+    ADL_evt->HP.Eint[i]   = 0;             //Energy of interaction
+    ADL_evt->HP.Pos[i][0] = 0;	  //Position where this interaction occures in the ADL referential
+    ADL_evt->HP.Pos[i][1] = 0;
+    ADL_evt->HP.Pos[i][2] = 0;
+   } 
+   
+   if(debugADL) std::cout << "Search hits in channel " << detector_channel << std::endl;
+   if(debugADL) std::cout << "Number of hits : " << hits_totnum << std::endl;
+   
   for(Int_t i = 0;i<hits_totnum;i++){
     
+    if(debugADL) std::cout << "hits : " << i << " -> detector " << hits_iddet[i] << " fired" << std::endl;
+
     if(hits_iddet[i] == detector_channel){ // Consider only hits in the given detector.
       //Fill in the Hit Pattern (HP):
       double P0[4]={0,hits_xpos[i] + xcenter,hits_ypos[i] + ycenter,inverted*(hits_zpos[i] + inverted*height)};
-      
+      if(debugADL) std::cout << "hits : " << i << " in detector " << hits_iddet[i] << endl;
+      if(debugADL) std::cout << "       ADL position  : " << P0[1] << " " << P0[2] << " " << P0[3] << std::endl;
+      if(debugADL) std::cout << "       MaGe position : " << hits_xpos[i] << " " << hits_ypos[i] << " " << hits_zpos[i] << std::endl;
       if(IsInDetector(P0)){
 	if(debugADL) std::cout << "Hits in detector " << detector_channel << std::endl;
 	ETotDet += hits_edep[i];
@@ -306,7 +287,6 @@ double ADLDetectorTrace::SetADLhits(int hits_totnum, Float_t*hits_edep, Float_t*
   }
   return ETotDet;
 }
-
 int ADLDetectorTrace::CalculateTrace(){
   if(debugADL) StatusTraces(ADL_evt);
   CalculateTraces(ADL_evt);
@@ -370,3 +350,4 @@ int ADLDetectorTrace::GetTraceDim(){return GetDIMT();}
 int ADLDetectorTrace::GetCenter(){return GetSimionCenter();}
 double** ADLDetectorTrace::GetElectronPath(){return GetNUMRES_XYZe();}
 double** ADLDetectorTrace::GetHolePath(){return GetNUMRES_XYZh();}
+

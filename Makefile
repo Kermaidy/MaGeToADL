@@ -12,9 +12,9 @@ BIN     = ./bin
 BUILD   = ./build
 LIB     = ./lib
 INC     = ./inc
-ADL     = ../adl-4.2
-GERDA   = /lfs/l3/gerda/kermaidy/Analysis/software/gerda
-GELATIO = /lfs/l3/gerda/kermaidy/Analysis/software/src/gelatio
+ADL     = ../ADL4
+GERDA   = /lfs/l1/gerda/kermaidy/Analysis/software/gerda
+GELATIO = /lfs/l1/gerda/kermaidy/Analysis/software/src/gelatio
 
 LIBS    = -lm  $(ROOTLIBS) -lTreePlayer -lRGL  $(SYSLIBS)
 LIBS   += -L${ADL}/lib/ -lADL-4-2
@@ -37,7 +37,7 @@ SRCOBJ = $(subst $(SRC)/,$(BUILD)/,$(patsubst %.cc,%.o,$(SRCSRC)))
 default: all
 all: tools library exe
 	@echo "linking executable"
-	@ln -f -s bin/SimulatePulse_x ./SimulatePulse
+	@ln -f -s bin/SimulatePulse_x ./SimulatePulses
 	@ln -f -s bin/GetPulserResponse_x ./GetPulserResponse
 	@ln -f -s bin/ConvolutePulses_x ./ConvolutePulses
 	@ln -f -s bin/FitElectronicResponse_x ./FitElectronicResponse

@@ -8,50 +8,75 @@
 
 using namespace std;
 
+void PrintHelp()
+{
+  fprintf(stderr,"  \n");
+  fprintf(stderr,"    HELP : \n");
+  fprintf(stderr,"    To execute:./SimulatePulse -option1 xxx -option2 yyy .... \n");
+  fprintf(stderr,"    -i *	 ->input root filename \n");
+  fprintf(stderr,"    -ip *      ->input root path (default:.../MaGeToADL/RawData \n");
+  fprintf(stderr,"    -op *      ->output root path (default:.../MaGeToADL/RawPulses \n");
+  fprintf(stderr,"    -d  *      ->Debug 0=Off, 1=On (Default: 0) \n");
+  fprintf(stderr,"    -config *  -> provide a config file (default: default.txt) \n");  
+  fprintf(stderr,"    -pos *     -> centering detector position (1=GERDA MaGe(default),2:HADES) \n");
+  fprintf(stderr,"    -n *       -> No. of events simulated (0(default):All, else:(1/500)th of all) \n");
+  fprintf(stderr,"    -h         -> this help \n");
+
+  fprintf(stderr,"  \n");
+
+  exit(1);
+}
+
 int main(int argc, const char* argv[])
 {
- string inputrootpath;
- string inputrootfilename;
+ string inputrootpath="./RawData/";
+
  string rootfilename;
- string outputrootpath;
- string outputrootfilename;
- string isCal;
- int whichDet;
- int resetPos;
+ string outputrootpath="./RawPulses/";
 
- if(argc>6){
-   inputrootpath = argv[1];
-   outputrootpath = argv[2];
-   rootfilename = argv[3];
-   isCal = argv[4];
-   whichDet = atoi(argv[5]);
-   resetPos = atoi(argv[6]);
-   inputrootfilename = inputrootpath + rootfilename;
-   outputrootfilename = outputrootpath + rootfilename;
+ string configfile = "config/default.txt";
+ int debug =0;
+ string Nentries="0";
+ int resetPos=1;   //Mage detectors not centred around zero, correct for it.
+ int i=0;
+ while(++i<argc){
+   const char* opt=argv[i];
+   
+   if(strcmp(opt,"-d")==0)       sscanf(argv[++i],"%d",&debug);      //debug mode 0=off, 1=On 
+   else if(strcmp(opt,"-ip")==0) inputrootpath=argv[++i];                   // specify input path
+   else if(strcmp(opt,"-op")==0) outputrootpath=argv[++i];                  // specify output path
+   else if(strcmp(opt,"-i")==0) rootfilename=argv[++i];                    // specify input filename
+   else if(strcmp(opt,"-h")==0)  PrintHelp();                             
+   else if(strcmp(opt,"-config")==0) configfile=argv[++i];            //input a config file
+   else if(strcmp(opt,"-pos")==0) sscanf(argv[i++],"%d",&resetPos);   //centre the detector position
+   else if(strcmp(opt,"-n")==0) Nentries=argv[++i];   //No. of events simulated ("0"(default):All, else:(1/500)th of all)
+   else {
+   cout << "You did not provide filename and/or configfile " << endl;
+//   return 0;
+   }
  }
- else{
-     cout << "You did not provide enough arguments " << endl;
-     cout << "Try: ./SimulatePulse #INPUTPATHNAME #OUTPUTPATHNAME #INPUTFILENAME $ISCAL[0 or 1] #WHICHDET[0=GerdaArray or 1=SAGE_HADES or 2=ORTEC_MPIK] #RESETPOS[0 or 1 if MaGe det. pos. not centered around 0]" << endl;
-     return 0;
- }
+ string inputrootfilename=inputrootpath+rootfilename;
+ string outputrootfilename=outputrootpath+rootfilename;
 
- ADLOutput ADLoutput;
+
+ ADLOutput ADLoutput(debug);
 
  cout << "Initialize the simulation " << endl;
- ADLoutput.DefineSchema(outputrootfilename,whichDet,resetPos);
+ ADLoutput.DefineSchema(configfile,outputrootfilename,resetPos);
     
  cout << "\r Run the simulation " << endl;
- TFile* fOutputFile = ADLoutput.RunSimulation(inputrootfilename,isCal,whichDet);
+ TFile* fOutputFile = ADLoutput.RunSimulation(configfile,inputrootfilename,Nentries);
  
  std::cout << " " << std::endl;
  std::cout << "Open outputs ROOT file" << endl;
 
  if(ADLoutput.WriteOutputs(fOutputFile)){
    cout << "Simulation ended properly " << endl;
-   cout << " " << std::endl;
+   cout << " " << endl;
  }
  else{  
    cout << "Data not written. Exit. " << endl;
-   cout << " " << std::endl;
+   cout << " " << endl;
  }
+ return 0;
 }

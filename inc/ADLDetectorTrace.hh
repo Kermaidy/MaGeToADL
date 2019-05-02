@@ -23,10 +23,11 @@ public:
 
   // public functions
   std::string GetSetupFile();
+  std::vector<int> ReadConfigfile(std::string);
   void SetSetupFile(int);
   void ConfigureADL(std::string,int);
   void SetPotentials(std::string);
-  void SetPositionOffset(double);
+  void SetPositionOffset(int);
   void CreateADLevent();
   void DeleteADLevent();
   void SetWaveformTimeOffset(double,double);
@@ -41,7 +42,8 @@ public:
   int GetCenter();
   double** GetElectronPath();
   double** GetHolePath();
-
+  std::vector<double> x0,y0,z0;
+  std::vector<int> channels,inv;
 private:
 
 
@@ -55,7 +57,7 @@ private:
   double Center[NDET];
   double Height[NDET];
 
-  std::vector<double> x0,y0,z0;
+//  std::vector<double> x0,y0,z0;
 
   std::string detector_setupfile; // ADL configuration file
   int detector_channel; // Detector channel

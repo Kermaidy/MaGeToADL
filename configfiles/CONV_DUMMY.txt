@@ -1,0 +1,10 @@
+###################################################
+# This is a dummy file, doing nothing other than  #
+# invert the pulse (maybe                         #
+###################################################
+
+
+#Segments to invert:
+INVERT					1                      !
+ADL_G_ARRAY_Filename	ANG1/ConfigFiles/Catequil_Pulser.txt !
+ADL_G_RCtau             0.00    ! [mus]

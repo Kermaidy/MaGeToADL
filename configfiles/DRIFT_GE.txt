@@ -1,0 +1,35 @@
+###################################################
+#  Here parameters for the drift velocity are set #
+#  Should not be touched                          #
+###################################################
+
+#LATTICE ORIENTATION PARAMETERS:
+ADL_G_LatticePhi   	0.0
+ADL_G_LatticeTheta	0.0
+ADL_G_LatticePsi	0.0
+
+#Electron Mobility Parameters:
+#Mobility in 100:
+ADL_G_E0e100		507.7
+ADL_G_Be100		0.80422
+ADL_G_Mu0e100		0.0371654
+ADL_G_MuNe100		-0.0001447
+#Intervalley Scattering rate:
+ADL_G_LnNu0		0.459
+ADL_G_LnNu1		0.0294
+ADL_G_LnNu2		0.000054
+ADL_G_E0		1200.0
+
+#Hole Mobility Parameters:
+#Mobility in 100:
+ADL_G_E0h100		181.9 
+ADL_G_Bh100		0.73526
+ADL_G_Muh100		0.062934
+#Mobility in 111:
+ADL_G_E0h111		143.9
+ADL_G_Bh111		0.7488
+ADL_G_Muh111		0.062383 
+
+#Other Parameters:
+ADL_G_SmallField	1e-6
+ADL_G_Temp		100

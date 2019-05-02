@@ -1,0 +1,14 @@
+###################################################
+# Here one can define what should be the output   #
+# format of the pulses                            #
+###################################################
+
+
+# Lets read in traces in binary mode:
+ADL_READ	TXT
+
+# Writing traces in text format:
+ADL_WRITE	TXT
+
+# Or simply
+ADL_READWRITE TXT

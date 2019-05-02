@@ -30,19 +30,24 @@ class ADLOutput
 {
 public:
   //default constructor
-  ADLOutput();
+  ADLOutput(int);
 
   //destructor
   ~ADLOutput();
 
-  void DefineSchema(std::string,int,int);
-  TFile* RunSimulation(std::string,std::string,int);
+  void DefineSchema(std::string,std::string,int);
+  TFile* RunSimulation(std::string,std::string,std::string);
   int WriteOutputs(TFile*);
 
-  //private  members
+  std::vector<double> x0,y0,z0;
+  std::vector<int> channels;
+  int nchannel; 
+
+ //private  members
 private:
 
   void SimulatePulse(int);   // ADL-4.2
+  void SimulateEmptyWaveform(int);   // simulates empty wf
 
   static const int MAX_NTRACE=2000;
   static const int MAX_NHITS=1000;
@@ -56,6 +61,8 @@ private:
   Float_t  hits_ypos[MAX_NHITS];
   Float_t  hits_zpos[MAX_NHITS];
   Int_t    hits_iddet[MAX_NHITS];  // which Ge detector this hit is in
+
+  int traceCalculated[NDET]; // Flag to calculate trace in Ge det only once per event
 
   // hits : ADL informations
   Float_t  hits_ADLpos[MAX_NHITS];
@@ -82,7 +89,8 @@ private:
 
   ADLDetectorTrace* ADLDetector;
 
-  int traceCalculated[NDET]; // Flag to calculate trace in Ge det only once per event
+  int debugADL;
+
   int setupADLdetPos;    // Used to define the detectors positon offset in ADL only for the 1st event
   int testPulser;
 

@@ -1,0 +1,13 @@
+###################################################
+# No idea what this is doing, don't touche        #
+###################################################
+
+
+# NUMRES:#########################################
+# Here all the specific variables for NUMRES are passed on:
+ADL_G_NUMRES_EPS	1e-6	!(routine RKQS) error tolerance for integration
+ADL_G_NUMRES_MAXSTP	100000	!(routine odeint) maximum integration steps between 2 samples
+ADL_G_NUMRES_TINY	1e-5	!(routine odeint) small position difference [cm]
+ADL_G_NUMRES_DTMIN 	0.0	!(routine odeint) minimum stepsize to take [us]
+ADL_G_NUMRES_DT0        1e-4    !(routine odeint) first stepsize to try [us]
+ADL_G_NUMRES_CLOUD_RMS  0   ! initial charge cloud size [cm]

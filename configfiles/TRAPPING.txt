@@ -1,0 +1,17 @@
+###################################################
+# Here trapping parameters are defined            #
+# Don't touche                                    #
+###################################################
+
+# SETTING TRAPPING RATE MODEL:
+ADL_G_TRAPPING_ERATE	ADL_ElectronTrappingRate_FIELD	!For electrons
+ADL_G_TRAPPING_HRATE	ADL_HoleTrappingRate_FIELD	!For holes
+
+# SETTING NUMRES PARAMETERS for integration:
+ADL_G_TRAPPING_EPS	1e-6	!(routine RKQS) error tolerance for integration
+ADL_G_TRAPPING_MAXSTP	100000	!(routine odeint) maximum integration steps between 2 samples
+ADL_G_TRAPPING_TINY	1e-5	!(routine odeint) small position difference [cm]
+ADL_G_TRAPPING_DTMIN 	0.0	!(routine odeint) minimum stepsize to take [us]
+#ADL_G_TRAPPING_DT0	1e-2    !(routine odeint) first stepsize to try [us]
+#ADL_G_TRAPPING_DT0 by default will be set to ADL_G_EVENT_DeltaT, 
+#which usually is ok, therefore commented out.

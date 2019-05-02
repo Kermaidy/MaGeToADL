@@ -1,0 +1,66 @@
+###################################################
+#Geometry file for a typical SAGe detector
+#  Here the example of Chronos
+###################################################
+
+ICOAX_G_PointContactDepth         0.20 ! smallest value possible (negative value = one gridsize)
+ICOAX_G_PasLayThickness           0.00 ! Passivation layer thickness
+ICOAX_G_SurfaceContactDepth       1.50 ! Dead layer thickness
+ICOAX_G_Spacing                   0.00 ! No spacing
+ICOAX_G_ExtGroundWidth            0.00 ! External ground potential (if in a grounded container)
+
+ICOAX_G_ImpTop                   -0.754 ! Top impurity concentration
+ICOAX_G_ImpBot                   -1.40 ! Bottom impurity concentration
+
+##############################################################
+################ ORTEC 1.3 kg ICOAX well geometry ###################
+ICOAX_G_GrooveDepth               0.30 ! Depth of the groove
+ICOAX_G_GrooveWidth               0.30 ! Width of the groove
+ICOAX_G_Radius                    3.80 ! Radius of the crystal
+ICOAX_G_Height                    6.60 ! Heigth of the crystal
+ICOAX_G_PointContactRadius        0.25 ! Standard Canberra size
+ICOAX_G_GrooveInnerRadius         1.30 ! usually = POINT_CONTACT_RADIUS
+ICOAX_G_WellDepth                 3.90 ! Well depth
+ICOAX_G_WellRadius                0.50 ! Well radius
+ICOAX_G_WellRadiusTop             0.50 ! Well radius
+ICOAX_G_WellRounding              1    ! allow spherical well extrusion
+ICOAX_G_EdgeRadius                0.00 ! Radius of the start of the cut
+ICOAX_G_EdgeHeight                3.00 ! Height to which the cut reaches
+##############################################################
+
+SIMION_G_GridSize                0.05 ! grid size in cm
+SIMION_G_EpsScale               16.0  ! epsilon scale relative to epsilon_0
+SIMION_G_EpsExtScale             1.0  ! external permittivity (usually 1=vacuum)
+SIMION_G_Description   Det_ORTEC/ICOAX ! 
+
+SIMION_G_Dimension                  3 ! 2 for 2D 3 for 3D
+SIMION_G_Voltage                 3500  ! High voltage
+
+SIMION_G_RhoScale                 1.0 ! space charge density scale, relative to 10^10/cm^3
+SIMION_G_Tol                    1e-10 ! required tolerance for solution
+SIMION_G_DEBUG                      0 ! print extra information if != 0
+
+ADL_G_SIMION_SmallPot            1e-6 ![V] Small potential, Defines e.g. ADL_In_Detector_SIMION
+ADL_G_Temp                        100 ![K]
+ADL_G_RCtau                      0.00 ![mus]
+
+ADL_G_Wpot               configfiles/Det_ORTEC/ICOAX_Wpot.pa ! Location where the weighting potential is saved
+ADL_G_Epot               configfiles/Det_ORTEC/ICOAX_Epot.pa ! Location where the electric potential is saved
+ADL_G_Stru               configfiles/Det_ORTEC/ICOAX_Stru.pa ! Location where the structural potential is saved
+
+ADL_SCALE_0                         1 !Epot.pa0 (Electrical field space charge)
+
+ADL_G_VERSION   4.2
+ADL_G_DEBUG     0                     ! 0: Debugging mode switched OFF
+
+ADL_FIELDS_SIMION	configfiles/Det_ORTEC/ICOAX.txt
+ADL_EVENT               configfiles/EVENT.txt
+ADL_TIME_FAST           configfiles/TIME_FAST.txt
+ADL_TRACES_NUMRES	configfiles/TRACES_NUMRES.txt
+ADL_TRAPPING            configfiles/TRAPPING.txt
+ADL_READWRITE           configfiles/READWRITE_TXT.txt
+ADL_DRIFT_GE            configfiles/DRIFT_GE.txt
+ADL_CONVL_DUMMY         configfiles/CONV_DUMMY.txt
+
+SIMION_GEOMETRY_ICOAX configfiles/Det_ORTEC/ICOAX.txt
+SIMION_SOLVER_INHOMOG configfiles/Det_ORTEC/ICOAX.txt

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-SCRIPT_PATH=/Pat/To/MaGeToADL
+SCRIPT_PATH=/lfs/l1/gerda/vibothe/software/src/MaGeToADL
 ERROR_PATH=${SCRIPT_PATH}/JobErrors/
 OUTPUT_PATH=${SCRIPT_PATH}/JobOutput/
 
@@ -9,15 +9,10 @@ LAUNCH_DATE=${LAUNCH_DATE}
 JOBNAME=submit_at_$LAUNCH_DATE
 
 cd ${SCRIPT_PATH}
-
 TIER=$1
-DET=$2
+CONFIGFILE=${SCRIPT_PATH}/config/BEGE.txt
 
-#
-# If DET = 0, simulate pulses for the whole GERDA array, if not, only a single detector
-#
-
-RAWPULSESDATA=${SCRIPT_PATH}/RawData
+RAWDATAPATH=${SCRIPT_PATH}/RawData
 RAWPULSESPATH=${SCRIPT_PATH}/RawPulses
 TIER1PATH=${SCRIPT_PATH}/Tier1
 TIER2PATH=${SCRIPT_PATH}/Tier2
@@ -35,7 +30,8 @@ then
 	    iter=iter+1
 	    JOBNAME_ID=${JOBNAME}_$iter
 	    echo "Processing simulation : ${iter} ${file}"
-	    qsub -P short -e $ERROR_PATH -o $OUTPUT_PATH -N $JOBNAME_ID ${SCRIPT_PATH}/LaunchGenericJobSimulation.sh ${file} ${SCRIPT_PATH} ${DET} ${RAWDATAPATH} ${RAWPULSEPATH}
+	    qsub -P short -e $ERROR_PATH -o $OUTPUT_PATH -N $JOBNAME_ID ${SCRIPT_PATH}/LaunchGenericJobSimulation.sh -i ${file} -config ${CONFIGFILE}
+#	    sh ${SCRIPT_PATH}/LaunchGenericJobSimulation.sh -i ${file} -config ${CONFIGFILE}
 	done
 elif [ ${TIER} = "1" ];
 then
@@ -48,7 +44,7 @@ then
             iter=iter+1
             JOBNAME_ID=${JOBNAME}_$iter
             echo "Processing simulation : ${iter} ${file}"
-            qsub -e $ERROR_PATH -o $OUTPUT_PATH -N $JOBNAME_ID ${SCRIPT_PATH}/LaunchGenericJobConvolution.sh ${file} ${SCRIPT_PATH} ${iter} ${RAWPULSESPATH} ${TIER1PATH}
+            qsub -e $ERROR_PATH -o $OUTPUT_PATH -N $JOBNAME_ID ${SCRIPT_PATH}/LaunchGenericJobConvolution.sh -i ${file} 
         done
 elif [ ${TIER} = "2" ];
 then
@@ -62,6 +58,6 @@ then
     		iter=iter+1
     		JOBNAME_ID=${JOBNAME}_$iter
     		echo "Processing file : ${file}"
-    		qsub -e $ERROR_PATH -o $OUTPUT_PATH -N $JOBNAME_ID ${SCRIPT_PATH}/LaunchGenericExecModuleIni.sh ${file} ${SCRIPT_PATH} ${TIER1PATH} ${TIER2PATH}
+    		qsub -e $ERROR_PATH -o $OUTPUT_PATH -N $JOBNAME_ID ${SCRIPT_PATH}/LaunchGenericExecModuleIni.sh ${file} ${SCRIPT_PATH} ${TIER2PATH} ${TIER1PATH}
   	done
 fi
