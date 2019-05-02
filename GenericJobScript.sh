@@ -1,6 +1,6 @@
 #!/bin/bash
 
-SCRIPT_PATH=/lfs/l1/gerda/vibothe/software/src/MaGeToADL
+SCRIPT_PATH=/Path /to/MaGeToADL
 ERROR_PATH=${SCRIPT_PATH}/JobErrors/
 OUTPUT_PATH=${SCRIPT_PATH}/JobOutput/
 
