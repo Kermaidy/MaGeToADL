@@ -19,7 +19,7 @@ void PrintHelp()
   fprintf(stderr,"    -d  *      ->Debug 0=Off, 1=On (Default: 0) \n");
   fprintf(stderr,"    -config *  -> provide a config file (default: default.txt) \n");  
   fprintf(stderr,"    -pos *     -> centering detector position (1=GERDA MaGe(default),2:HADES) \n");
-  fprintf(stderr,"    -n *       -> No. of events simulated (0(default):All, else:(1/500)th of all) \n");
+  fprintf(stderr,"    -n *       -> No. of events simulated (0(default):All, else =*) \n");
   fprintf(stderr,"    -h         -> this help \n");
 
   fprintf(stderr,"  \n");

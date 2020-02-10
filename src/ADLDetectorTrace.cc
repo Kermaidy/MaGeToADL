@@ -45,6 +45,7 @@ vector<int> ADLDetectorTrace::ReadConfigfile(string file){
       y0[channels.back()] = atof(ytmp.c_str()); 
       z0[channels.back()] = atof(ztmp.c_str());
       inv[channels.back()] = atoi(invtmp.c_str());
+      cout<<"inversion="<< inv[channels.back()]<<endl;
       }
     }
   else{  // if the file doesn't exist
@@ -57,6 +58,7 @@ vector<int> ADLDetectorTrace::ReadConfigfile(string file){
   x0.pop_back();
   y0.pop_back();
   z0.pop_back();
+  inv.pop_back();
   return channels;
 }  
 
@@ -71,7 +73,7 @@ void ADLDetectorTrace::SetSetupFile(int channel){
   else oss.str("");
   oss << channel;
 
-  char* envPath = getenv("ADLDIR");
+  char* envPath = getenv("MAGETOADLDIR");
 
   detector_setupfile = envPath;
  // detector_setupfile = "";
@@ -136,14 +138,13 @@ void ADLDetectorTrace::SetPotentials(std::string setupfile)
 }
 
 void ADLDetectorTrace::SetPositionOffset(int ch){
-
-  inverted = inv[ch];
-
+  detector_channel=ch;
+  inverted = inv[detector_channel];
   gridsize = GetSimionGridSize();
   xcenter  = Center[detector_channel] - x0[detector_channel];              //center of detector in cm
   ycenter  = Center[detector_channel] - y0[detector_channel];              //center of detector in cm
-  height   = Height[detector_channel] - z0[detector_channel];              //bottom of detector in cm
-  // cout << "z0 : " << z0[detector_channel] << " Height : " << Height[detector_channel] << " height : " << height <<endl;
+  height   = inverted*Height[detector_channel] - z0[detector_channel];              //bottom of detector in cm
+  if(debugADL)cout <<ch<<"=channel="<<detector_channel<< "  z0 : " << z0[detector_channel] << " Height : " << Height[detector_channel] << " height : " << height <<endl;
   if(debugADL){
     std::cout << "DEBUG: ADL detector gridsize : " << gridsize          << std::endl;
     std::cout << "DEBUG: ADL detector center   : " << GetSimionCenter() << std::endl;
@@ -183,7 +184,7 @@ double ADLDetectorTrace::SetADLhits(int hits_totnum, std::vector<double> &hits_e
     
     if(hits_iddet[i] == detector_channel){ // Consider only hits in the given detector.
       //Fill in the Hit Pattern (HP):
-      double P0[4]={0,hits_xpos[i] + xcenter,ycenter,inverted*(hits_zpos[i] + inverted*height)};
+      double P0[4]={0,hits_xpos[i] + xcenter,ycenter,inverted*(hits_zpos[i] + height)};
       
       if(IsInDetector(P0)){
 	if(debugADL) std::cout << "Hits in detector " << detector_channel << std::endl;
@@ -191,7 +192,7 @@ double ADLDetectorTrace::SetADLhits(int hits_totnum, std::vector<double> &hits_e
 	ADL_evt->HP.Eint[j]  =hits_edep[i];             //Energy of interaction
 	ADL_evt->HP.Pos[j][0]=hits_xpos[i] + xcenter;	  //Position where this interaction occures in the ADL referential
 	ADL_evt->HP.Pos[j][1]=ycenter;
-	ADL_evt->HP.Pos[j][2]=inverted*(hits_zpos[i] + inverted*height);
+	ADL_evt->HP.Pos[j][2]=inverted*(hits_zpos[i] + height);
 	
 	j++; // Only iterate on points in the detector
       }
@@ -224,7 +225,7 @@ double ADLDetectorTrace::SetADLhits(int hits_totnum, Float_t*hits_edep, Float_t*
 
     if(hits_iddet[i] == detector_channel){ // Consider only hits in the given detector.
       //Fill in the Hit Pattern (HP):
-      double P0[4]={0,hits_xpos[i] + xcenter,hits_ypos[i] + ycenter,inverted*(hits_zpos[i] + inverted*height)};
+      double P0[4]={0,hits_xpos[i] + xcenter,hits_ypos[i] + ycenter,inverted*(hits_zpos[i] + height)};
       if(debugADL) std::cout << "hits : " << i << " in detector " << hits_iddet[i] << endl;
       if(debugADL) std::cout << "       ADL position  : " << P0[1] << " " << P0[2] << " " << P0[3] << std::endl;
       if(debugADL) std::cout << "       MaGe position : " << hits_xpos[i] << " " << hits_ypos[i] << " " << hits_zpos[i] << std::endl;
@@ -234,14 +235,14 @@ double ADLDetectorTrace::SetADLhits(int hits_totnum, Float_t*hits_edep, Float_t*
 	ADL_evt->HP.Eint[j]  =hits_edep[i];             //Energy of interaction
 	ADL_evt->HP.Pos[j][0]=hits_xpos[i] + xcenter;	  //Position where this interaction occures in the ADL referential
 	ADL_evt->HP.Pos[j][1]=hits_ypos[i] + ycenter;
-	ADL_evt->HP.Pos[j][2]=inverted*(hits_zpos[i] + inverted*height);
+	ADL_evt->HP.Pos[j][2]=inverted*(hits_zpos[i] + height);
 	
 	j++; // Only iterate on points in the detector
       }
       else if(debugADL) std::cout << "Hits not in detector " << detector_channel << std::endl;
       
-      if(debugADL) std::cout << "    MaGe ref. hits position : " << hits_xpos[i] << " " << hits_ypos[i] << " " << hits_zpos[i] << std::endl;
-      if(debugADL) std::cout << "    ADL  ref. hits position : " << P0[1] << " " << P0[2] << " " << P0[3] << std::endl;
+    //  if(debugADL) std::cout << "    MaGe ref. hits position : " << hits_xpos[i] << " " << hits_ypos[i] << " " << hits_zpos[i] << std::endl;
+    //  if(debugADL) std::cout << "    ADL  ref. hits position : " << P0[1] << " " << P0[2] << " " << P0[3] << std::endl;
     }
   }
   return ETotDet;
@@ -261,7 +262,7 @@ double ADLDetectorTrace::SetADLhits(int hits_totnum, Float_t*hits_edep, Float_t*
   for(Int_t i = 0;i<hits_totnum;i++){
     if(hits_iddet[i] == detector_channel){
       //Fill in the Hit Pattern (HP):
-      double P0[4]={0,hits_xpos[i] + xcenter,hits_ypos[i] + ycenter,inverted*(hits_zpos[i] + inverted*height)};
+      double P0[4]={0,hits_xpos[i] + xcenter,hits_ypos[i] + ycenter,inverted*(hits_zpos[i] + height)};
       hits_ADLpos[i] = GetDetectorPos(P0);
       if(IsInDetector(P0)){
 	if(debugADL) std::cout << "Hits in detector " << detector_channel << std::endl;
@@ -270,7 +271,7 @@ double ADLDetectorTrace::SetADLhits(int hits_totnum, Float_t*hits_edep, Float_t*
 	ADL_evt->HP.Eint[j]  =hits_edep[i];             //Energy of interaction
 	ADL_evt->HP.Pos[j][0]=hits_xpos[i] + xcenter;	  //Position where this interaction occures in the ADL referential
 	ADL_evt->HP.Pos[j][1]=hits_ypos[i] + ycenter;
-	ADL_evt->HP.Pos[j][2]=inverted*(hits_zpos[i] + inverted*height);
+	ADL_evt->HP.Pos[j][2]=inverted*(hits_zpos[i] + height);
 	
 	j++; // Only iterate on points in the detector
       }

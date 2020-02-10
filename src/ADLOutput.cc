@@ -24,10 +24,10 @@ using namespace std;
 
 //---------------------------------------------------------------------------//
 ADLOutput::ADLOutput(int debug):
-      fSimulateTraces(true),
-      fClusterization(false),
-      fRecordADLOutPos(false),
-      fRecordADLTraces(false)
+  fSimulateTraces(true),
+  fClusterization(false),
+  fRecordADLOutPos(false),
+  fRecordADLTraces(false)
 {
   fOutputFile = 0;
   MGTree = 0;
@@ -47,77 +47,77 @@ ADLOutput::~ADLOutput()
 
 void ADLOutput::DefineSchema(string configfile, string outputrootfilename, int resetPos)
 {
-      setupADLdetPos = 0;
-      // ADL detector initialization
-      ADLDetector = new  ADLDetectorTrace(debugADL,0);
+  setupADLdetPos = 0;
+  // ADL detector initialization
+  ADLDetector = new  ADLDetectorTrace(debugADL,0);
     
-      cout << "\r ADL detector created " << endl;
+  cout << "\r ADL detector created " << endl;
 
-      channels=ADLDetector->ReadConfigfile(configfile);
-      nchannel=channels.size();
+  channels=ADLDetector->ReadConfigfile(configfile);
+  nchannel=channels.size();
     
-      cout<<"nchannel="<<nchannel<<endl;
+  cout<<"nchannel="<<nchannel<<endl;
       
-      //    for (int channel=0; channel<nchannel; ++channel){
-      for(int ch=0; ch < nchannel; ch++){
+  //    for (int channel=0; channel<nchannel; ++channel){
+  for(int ch=0; ch < nchannel; ch++){
 
-	  if(debugADL)cout << "\r Setup channel " << channels[ch]  << endl;
-	  ADLDetector->SetSetupFile(channels[ch]);
-          if(debugADL) std::cout << "Set Setup file:"<<channels[ch]<<endl;	  
-          ADLDetector->ConfigureADL(ADLDetector->GetSetupFile(),resetPos); // ADL-4.2
-	}
+    if(debugADL)cout << "\r Setup channel " << channels[ch]  << endl;
+    ADLDetector->SetSetupFile(channels[ch]);
+    if(debugADL) std::cout << "Set Setup file:"<<channels[ch]<<endl;	  
+    ADLDetector->ConfigureADL(ADLDetector->GetSetupFile(),resetPos); // ADL-4.2
+  }
     
-      // Open output ROOT file
-      fOutputFile = new TFile(outputrootfilename.c_str(),"RECREATE");
-	if(debugADL)cout<<"create output file "<<endl;  
-      // Tier1 tree definition
-      MGTree = new TTree("MGTree","MGTree");
+  // Open output ROOT file
+  fOutputFile = new TFile(outputrootfilename.c_str(),"RECREATE");
+  if(debugADL)cout<<"create output file "<<endl;  
+  // Tier1 tree definition
+  MGTree = new TTree("MGTree","MGTree");
       
-      // Waveform branch
-      MGTree->Branch("event",&event, 32000,-99);
+  // Waveform branch
+  MGTree->Branch("event",&event, 32000,-99);
       
-      // Run info
-      MGRunType::RunType fRunType;
-      fRunType = MGRunType::kData;
-      std::string theDAQ = "Struck";
-      int fRunNumber = 1;
-      time_t fStartTime = 1479394213;
-      time_t fStopTime = 1479394213.000160000;
-      std::string theRunDescription = "No description";
+  // Run info
+  MGRunType::RunType fRunType;
+  fRunType = MGRunType::kData;
+  std::string theDAQ = "Struck";
+  int fRunNumber = 1;
+  time_t fStartTime = 1479394213;
+  time_t fStopTime = 1479394213.000160000;
+  std::string theRunDescription = "No description";
       
-      theRun = new MGTRun();
-      theRun->SetRunType(fRunType);
-      theRun->SetRunNumber(fRunNumber);
-      theRun->SetRunDescription(theRunDescription);
-      theRun->SetStartTime(fStartTime);
-      theRun->SetStopTime(fStopTime);
-      //The Stop time is available at the end of run
-      theRun->SetParentDAQLabel(theDAQ);
+  theRun = new MGTRun();
+  theRun->SetRunType(fRunType);
+  theRun->SetRunNumber(fRunNumber);
+  theRun->SetRunDescription(theRunDescription);
+  theRun->SetStartTime(fStartTime);
+  theRun->SetStopTime(fStopTime);
+  //The Stop time is available at the end of run
+  theRun->SetParentDAQLabel(theDAQ);
       
-      // Set MGDO digitizer
-      fPreTrigger = 100;
-      fTimestamp = 1479394213;
-      fDecimalTimestamp = 0;
-      IsPulseInverted = false;
-      TriggerNumber = 1;
-      fEventNumber = 1;
-      fMuVetoed = false;
-      fMuVetoSample = 0;
-      wfLength = 4096;
-      wfPreTrigger = 1900;
-      auxwfLength = 1000;
-      auxwfPreTrigger = 300;
+  // Set MGDO digitizer
+  fPreTrigger = 100;
+  fTimestamp = 1479394213;
+  fDecimalTimestamp = 0;
+  IsPulseInverted = false;
+  TriggerNumber = 1;
+  fEventNumber = 1;
+  fMuVetoed = false;
+  fMuVetoSample = 0;
+  wfLength = 4096;
+  wfPreTrigger = 1900;
+  auxwfLength = 1000;
+  auxwfPreTrigger = 300;
       
-      theTime = 1479394213;
-      SamplingFrequency = 0.025; // GHz
-      AuxSamplingFrequency = 0.1; // GHz
-      iChannel = 0;
-      validChannelCounter = 0;
+  theTime = 1479394213;
+  SamplingFrequency = 0.025; // GHz
+  AuxSamplingFrequency = 0.1; // GHz
+  iChannel = 0;
+  validChannelCounter = 0;
 }
 
 TFile* ADLOutput::RunSimulation(std::string configfile,std::string InputFilename,std::string Nentries){
   
- std::cout << " " << std::endl;
+  std::cout << " " << std::endl;
 
   std::string treename = "fTree";
   TTree* Tree = 0;
@@ -158,10 +158,8 @@ TFile* ADLOutput::RunSimulation(std::string configfile,std::string InputFilename
 	    cout << i << " events / " << Nevents << " treated in " << cpu_time_used << " seconds" << endl;
 	  }
 	  Tree->GetEntry(i);
-	  //std::cout << "\r   Event : " << i+1 << "/" << Tree->GetEntries() 
-	  //<< " containg " << hits_totnum << " hits" 
-	  //<< " with " << hits_tote << " keV" << std::flush;
-	  
+          double energy[nchannel],SimuEnergy[nchannel];
+
 	  // Set MGDO event structure
 	  event = new MGTEvent();
 	  MGEventType::EventType fEventType;
@@ -179,18 +177,30 @@ TFile* ADLOutput::RunSimulation(std::string configfile,std::string InputFilename
 	  validChannelCounter = 0;
 	  //Simulate pulses with ADL once per event
      
-	    for(int j=0;j<nchannel;j++) traceCalculated[channels[j]] = 0;
+	  if(!hits_totnum){
+	    SimulateEmptyWaveform(0);
+	    traces++;
+	  }
+	  else{
+	    for(int j=0;j<nchannel;j++){
+            traceCalculated[channels[j]] = 0;
+	    energy[j]=0.0;
+            SimuEnergy[j]=0.0;  
+	    }
 	    for(int j=0;j<hits_totnum; j++) {
-	     
-	        if( traceCalculated[hits_iddet[j]] == 0 && hits_tote > 1.){
-		SimulatePulse(hits_iddet[j]);
+	      if( traceCalculated[hits_iddet[j]] == 0){
+                energy[hits_iddet[j]]+=hits_edep[j];
+
+		if(hits_tote > 0.5)SimuEnergy[hits_iddet[j]]= SimulatePulse(hits_iddet[j]);
+		else               SimulateEmptyWaveform(hits_iddet[j]);
+		
 		traceCalculated[hits_iddet[j]] = 1;
 		traces++;
-	        }
-	        if(hits_tote <= 1.) SimulateEmptyWaveform(hits_iddet[j]);
+		
+	      }
 	    }   
-	    
-	  fOutputFile->cd();
+	  }
+	    fOutputFile->cd();
 	  MGTree->Fill();
 	  if(debugADL) std::cout << "Print MGTree : " << MGTree->GetEntries() << " events recorded" << std::endl;
 	  
@@ -211,8 +221,8 @@ TFile* ADLOutput::RunSimulation(std::string configfile,std::string InputFilename
   return fOutputFile;
 }
 
-void ADLOutput::SimulatePulse(int channel){
- 
+//void ADLOutput::SimulatePulse(int channel){
+double ADLOutput::SimulatePulse(int channel){
   
   double edepThrs = 0.9999; // Threshold requiring a certain fraction of energy deposition in clusters as compared to individual hits
   double edepFlag = 0;     // Energy deposition ratio between detectors and clusters
@@ -231,47 +241,47 @@ void ADLOutput::SimulatePulse(int channel){
   ADLDetector->CreateADLevent();
   if(debugADL) std::cout << "DEBUG: ADL event created" << std::endl;
 
- if(fClusterization){
-   //////////////////////////////////////////
-   //
-   //  Make cluster out of hits to save CPU time
-   //
-   //////////////////////////////////////////
+  if(fClusterization){
+    //////////////////////////////////////////
+    //
+    //  Make cluster out of hits to save CPU time
+    //
+    //////////////////////////////////////////
 
-   if(debugADL) std::cout << "DEBUG: ADL clusterization of " << hits_totnum << " hits" << std::endl;
-   //for(int i = 0;i<hits_totnum;i++)  printf("    Hits position : %d %.03f %.03f %.03f %.03f \n",hits_iddet[i], hits_xpos[i],hits_ypos[i],hits_zpos[i],hits_edep[i]);
+    if(debugADL) std::cout << "DEBUG: ADL clusterization of " << hits_totnum << " hits" << std::endl;
+    //for(int i = 0;i<hits_totnum;i++)  printf("    Hits position : %d %.03f %.03f %.03f %.03f \n",hits_iddet[i], hits_xpos[i],hits_ypos[i],hits_zpos[i],hits_edep[i]);
 
-   ADLCluster HitsCluster(channel);
+    ADLCluster HitsCluster(channel);
    
-   edepFlag = HitsCluster.LaunchClustering(hits_totnum,hits_xpos,hits_ypos,hits_zpos,hits_edep,hits_iddet);
+    edepFlag = HitsCluster.LaunchClustering(hits_totnum,hits_xpos,hits_ypos,hits_zpos,hits_edep,hits_iddet);
    
-   //if(channel == 34) std::cout << " " << edepFlag << " " << hits_tote;
+    //if(channel == 34) std::cout << " " << edepFlag << " " << hits_tote;
 
-   if(edepFlag>=edepThrs && edepFlag <= 1.00001){
-     if(debugADL) printf("DEBUG: Good clustering : %.05f  \n", edepFlag);
-     std::vector<std::vector<double> > clusters = HitsCluster.GetClusters();
+    if(edepFlag>=edepThrs && edepFlag <= 1.00001){
+      if(debugADL) printf("DEBUG: Good clustering : %.05f  \n", edepFlag);
+      std::vector<std::vector<double> > clusters = HitsCluster.GetClusters();
      
-     //for(int i = 0;i<clusters[0].size();i++) printf("   Clusters position : %.03f %.03f %.03f %.05f \n", edepFlag, clusters[0][i],clusters[1][i],clusters[3][i]);
+      //for(int i = 0;i<clusters[0].size();i++) printf("   Clusters position : %.03f %.03f %.03f %.05f \n", edepFlag, clusters[0][i],clusters[1][i],clusters[3][i]);
       
-     ETotDet = ADLDetector->SetADLhits(clusters[0].size(),clusters[3],clusters[0],clusters[1],clusters[2]);
-   }
-   else 
-     if(debugADL) printf("   Bad clustering : %.05f  \n", edepFlag);
-   ///////////////////////////////////////////////
- }
+      ETotDet = ADLDetector->SetADLhits(clusters[0].size(),clusters[3],clusters[0],clusters[1],clusters[2]);
+    }
+    else 
+      if(debugADL) printf("   Bad clustering : %.05f  \n", edepFlag);
+    ///////////////////////////////////////////////
+  }
 
- if(edepFlag < edepThrs || edepFlag > 1.00001){
-   if(fRecordADLOutPos)
-     ETotDet = ADLDetector->SetADLhits(hits_totnum,hits_edep,hits_xpos,hits_ypos,hits_zpos,hits_iddet,hits_ADLpos,hits_isOut);
+  if(edepFlag < edepThrs || edepFlag > 1.00001){
+    if(fRecordADLOutPos)
+      ETotDet = ADLDetector->SetADLhits(hits_totnum,hits_edep,hits_xpos,hits_ypos,hits_zpos,hits_iddet,hits_ADLpos,hits_isOut);
   
-   else
-     ETotDet = ADLDetector->SetADLhits(hits_totnum,hits_edep,hits_xpos,hits_ypos,hits_zpos,hits_iddet);
-   //if(channel == 34) std::cout << " NO cluster energy " << ETotDet << std::endl ;
- }
- if(debugADL) std::cout << "DEBUG: ADL hits set" << std::endl;
- if(debugADL) std::cout << "DEBUG: Deposited energy in channel " << channel << " is " << ETotDet << "/" << hits_tote << " MeV" << std::endl;
- if(ADLDetector->CalculateTrace()) std::cerr<< "Failed to calculate trace" <<std::endl;
- if(debugADL) std::cout << "DEBUG: ADL calculate trace" << std::endl;
+    else
+      ETotDet = ADLDetector->SetADLhits(hits_totnum,hits_edep,hits_xpos,hits_ypos,hits_zpos,hits_iddet);
+    //if(channel == 34) std::cout << " NO cluster energy " << ETotDet << std::endl ;
+  }
+  if(debugADL) std::cout << "DEBUG: ADL hits set" << std::endl;
+  if(debugADL) std::cout << "DEBUG: Deposited energy in channel " << channel << " is " << ETotDet << "/" << hits_tote << " MeV" << std::endl;
+  if(ADLDetector->CalculateTrace()) std::cerr<< "Failed to calculate trace" <<std::endl;
+  if(debugADL) std::cout << "DEBUG: ADL calculate trace" << std::endl;
  
   MGWaveformTag::EWaveformTag fWaveformTag = MGWaveformTag::kNormal;
   
@@ -306,14 +316,14 @@ void ADLOutput::SimulatePulse(int channel){
   if(debugADL) std::cout << "DEBUG: Waveform set" << std::endl;
   
   if (event->GetAuxWaveformArrayStatus()){
-      auxwaveform = new ((*(event->GetAuxWaveforms()))[validChannelCounter])
-	MGTWaveform(NULL,0,AuxSamplingFrequency,0.0,MGWaveform::kADC,0);     
-      auxwaveform->SetSamplingFrequency(AuxSamplingFrequency);
-      auxwaveform->SetID(channel);
-      auxwaveform->SetTOffset(0.);      
-      auxwaveform->SetLength(auxwfLength);
+    auxwaveform = new ((*(event->GetAuxWaveforms()))[validChannelCounter])
+      MGTWaveform(NULL,0,AuxSamplingFrequency,0.0,MGWaveform::kADC,0);     
+    auxwaveform->SetSamplingFrequency(AuxSamplingFrequency);
+    auxwaveform->SetID(channel);
+    auxwaveform->SetTOffset(0.);      
+    auxwaveform->SetLength(auxwfLength);
       
-      if(ADLDetector->SetADLauxWaveform(auxwaveform)) if(debugADL) std::cerr<< "Failed to set aux waveform" <<std::endl;
+    if(ADLDetector->SetADLauxWaveform(auxwaveform)) if(debugADL) std::cerr<< "Failed to set aux waveform" <<std::endl;
   }
 
   validChannelCounter++;
@@ -334,11 +344,12 @@ void ADLOutput::SimulatePulse(int channel){
   }  
   
   fOutputFile->cd();
-/*
-  MGTree->Fill();
-  if(debugADL) std::cout << "Print MGTree : " << MGTree->GetEntries() << " events recorded" << std::endl;
-*/
+  /*
+    MGTree->Fill();
+    if(debugADL) std::cout << "Print MGTree : " << MGTree->GetEntries() << " events recorded" << std::endl;
+  */
   ADLDetector->DeleteADLevent();
+  return ETotDet;
 }
 
 //**************To create empty waveforms (so that Exec_Module_ini does not crash*************************************************
@@ -348,7 +359,7 @@ void ADLOutput::SimulateEmptyWaveform(int channel){
   MGWaveformTag::EWaveformTag fWaveformTag = MGWaveformTag::kNormal;
   double ETotDet = 0;
 
- //Fill digiData. 
+  //Fill digiData. 
  
   digiData = new ((*(event->GetDigitizerData()))[validChannelCounter]) GETGERDADigitizerData(); 
   digiData->SetClockFrequency(SamplingFrequency);
@@ -372,15 +383,16 @@ void ADLOutput::SimulateEmptyWaveform(int channel){
   waveform->SetLength(wfLength);
   waveform->SetTOffset(0.);
   waveform->SetID(channel);
-  
+  for (size_t i=0;i<waveform->GetLength();i++) (*waveform)[i] = 0.;
   
   if (event->GetAuxWaveformArrayStatus()){
-      auxwaveform = new ((*(event->GetAuxWaveforms()))[validChannelCounter])
-        MGTWaveform(NULL,0,AuxSamplingFrequency,0.0,MGWaveform::kADC,0);     
-      auxwaveform->SetSamplingFrequency(AuxSamplingFrequency);
-      auxwaveform->SetID(channel);
-      auxwaveform->SetTOffset(0.);      
-      auxwaveform->SetLength(auxwfLength);
+    auxwaveform = new ((*(event->GetAuxWaveforms()))[validChannelCounter])
+      MGTWaveform(NULL,0,AuxSamplingFrequency,0.0,MGWaveform::kADC,0);     
+    auxwaveform->SetSamplingFrequency(AuxSamplingFrequency);
+    auxwaveform->SetID(channel);
+    auxwaveform->SetTOffset(0.);      
+    auxwaveform->SetLength(auxwfLength);
+    for (size_t i=0;i<auxwaveform->GetLength();i++) (*auxwaveform)[i] = 0.;
   }
 }
 
