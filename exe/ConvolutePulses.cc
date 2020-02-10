@@ -16,6 +16,7 @@
 #include "TCanvas.h"
 #include "TRandom3.h"
 #include "TApplication.h"
+#include "TMultiGraph.h"
 
 // MGDO includes
 #include "MGTWaveform.hh"
@@ -52,18 +53,45 @@ void PrintHelp()
   fprintf(stderr,"    -idSimu *  -> choose a noise file ? \n");
   fprintf(stderr,"    -gain *    -> enter ER gain parameter manually \n");
   fprintf(stderr,"    -bl *      -> enter baseline parameter manually \n");
-  fprintf(stderr,"    -filter *  ->0 or 1(pulser) or 2(1-pole circuit) or 3(2-poles circuit)  \n");
+  fprintf(stderr,"    -filter *  ->0 or 1(pulser) or 2(1-pole circuit) or 3(2-poles circuit) or 4(ER K.Panas model)  \n");
   fprintf(stderr,"    -h         -> this help \n");
-
+  fprintf(stderr,"    -GBP *     ->GBP for ER K.Panas model  \n");
+  fprintf(stderr,"    -cf *     ->capacitance(Farad) of feedback capacitor(ER Panas Model)  \n");
+  fprintf(stderr,"    -rf *     ->resistance(Ohm) of feedback resistor(ER Panas Model)  \n");
+  
   fprintf(stderr,"  \n");
 
   exit(1);
 }
 
+std::vector<int> ReadPulseList(std::string filename)
+{
+  std::vector<int> vec;
+  int Tmp,detTmp;
+
+  ifstream File(filename.c_str());
+
+  if(File){
+      std::cout << filename << " opened"<< std::endl;
+      while(File.good()){
+          File >> Tmp >>detTmp;
+          vec.push_back(Tmp);    //write all DEP event entries to vector to be  fed for convolution
+        }
+    }
+  else
+    cerr << filename << " not found. Try again" << std::endl;
+
+  File.close();
+
+  vec.pop_back();
+  std::cout << vec.size() << " events found in " << filename << std::endl;
+
+  return vec;
+}
 
 void GetFitParameters(int pole, std::vector<std::vector<double> > &vec1,std::vector<std::vector<double> > &vec2)
 {
-  std::string channel, a_decay, tau1_decay, tau2_decay, tau1_RC, tau2_RC, header;
+  std::string ch, a_decay, tau1_decay, tau2_decay, tau1_RC, tau2_RC, header;
   std::string filename;
   if(pole == 1) filename = "./FitElecRespOutput_1pole.txt";
   else filename = "./FitElecRespOutput_2poles.txt";
@@ -77,7 +105,7 @@ void GetFitParameters(int pole, std::vector<std::vector<double> > &vec1,std::vec
       getline(File,header);
       while(File.good())  // Loop until reach the eof
         {
-          File >> channel  >> a_decay >> tau1_decay >> tau2_decay >> tau1_RC >> tau2_RC ;
+          File >> ch  >> a_decay >> tau1_decay >> tau2_decay >> tau1_RC >> tau2_RC ;
           vec1[0].push_back(atof(a_decay.c_str()));   
           vec1[1].push_back(atof(tau1_decay.c_str()));   
           vec1[2].push_back(atof(tau2_decay.c_str()));   
@@ -98,6 +126,56 @@ void GetFitParameters(int pole, std::vector<std::vector<double> > &vec1,std::vec
   vec2[0].pop_back();
   vec2[1].pop_back();
 }
+
+
+//ER Panas: Get transfer function coefficients
+//void GetERparameters(std::vector<double>&coeff1, std::vector<double>&coeff2,double GBP,double Rf, double Cf,int det_id){
+void GetERparameters(std::vector<double>&coeff1, std::vector<double>&coeff2, int det_id, double gbpin, double Cd_temp, int isAux){
+
+//    double Cf = 0.35e-12;
+    double Kv = 150e3;
+    double Rf = 500e6;
+    
+    double Cd = Cd_temp * 1e-12;
+//    vector<double>Cd_opt={50e-12,50e-12,50e-12,50e-12,50e-12,50e-12,50e-12,50e-12,50e-12,50e-12,50e-12,1.1e-12,50e-12,1.1e-12,  50e-12,50e-12,50e-12,50e-12,50e-12,50e-12,50e-12,50e-12,50e-12,50e-12,  50e-12,50e-12,50e-12,50e-12,50e-12,50e-12,1e-12,1e-12,1.1e-12,50e-12, 50e-12,50e-12,50e-12,50e-12,50e-12,3.1e-12};
+//    double Cd=Cd_opt[det_id];
+    vector<double>CF(40,0.);
+//    CF={0.232, 0.200, 0.200, 0.227, 0.210, 0.230, 0.208, 0.229, 0.200, 0.200, 0.200, 0.230, 0.298, 0.224, 0.225,   0.171, 0.200, 0.205, 0.214, 0.212, 0.255, 0.231, 0.196, 0.217, 0.234,   0.185, 0.244, 0.230, 0.229, 0.226, 0.246, 0.282, 0.222, 0.207, 0.207, 0.200, 0.235, 0.200, 0.196, 0.206};
+    if(isAux)CF={0.232, 0.200, 0.200, 0.227, 0.210, 0.230, 0.208, 0.229, 0.200, 0.200, 0.200, 0.230, 0.298, 0.224,   0.225, 0.171, 0.200, 0.205, 0.214, 0.212, 0.255, 0.231, 0.196, 0.217,   0.234, 0.185, 0.244, 0.230, 0.229, 0.226, 0.246, 0.282, 0.222, 0.207,   0.207, 0.200, 0.235, 0.200, 0.196, 0.206};
+    else     CF={0.232, 0.200, 0.200, 0.227, 0.210, 0.230, 0.208, 0.229, 0.200, 0.200, 0.200, 0.352, 0.372, 0.341,   0.225, 0.171, 0.200, 0.205, 0.214, 0.212, 0.255, 0.231, 0.196, 0.217,   0.234, 0.185, 0.244, 0.230, 0.229, 0.226, 0.354, 0.369, 0.388,0.207,   0.207, 0.200, 0.235, 0.200, 0.196, 0.360};	  
+    double Cf= CF[det_id]* 1e-12;
+
+    double GBP= gbpin ;
+//    vector<double>GBP_opt= {9e+09,5e9,5e9,6.5e+09,7e+09,5e+09,4e+09,4.5e+09,5e9,5e9,5e9,1e+8,5e9,1e+08,  3e+10,3.5e+09,5e9,3e+10,5e+09,4e+09,4.5e+09,9e+09,3e+9,6.5e+09,  9e+10,7e+09,4e+09,3.6e+09,4.8e+09,3.2e+10,1e+08,7e+07,1e+08,5e+10,  6e+09,5e9,4e+09,7e+09,8e+09,2e+08};	
+//    double GBP= GBP_opt[det_id];	
+
+//    if(det_id==30)cout<<"parameters for ch30:: GBP= " <<GBP<< " Rf= "<<Rf[30]<< " cf= "<<Cf[30]<<"  Cd= "<<Cd<<endl;
+
+    double wpre = GBP / (Kv);
+    double wf = 1./(Cf*Rf);
+
+    double Csum = Cf + Cd;
+    double wsum = 1.0 / (Rf*Csum);
+    double alpha = Csum / (Cf*GBP);
+    
+    double a2 = alpha;                           // s^2 coefficient (den)
+    double a1 = ( 1. + alpha * (wsum + wpre) );  // s^1 coefficient (den)
+    double a0 = (alpha * wpre* wsum + wf);	 // s^0 coefficient (den)
+    
+    double b0 = 1./Cf;                           // s^0 coefficient (num)
+    double b1 = 0.;                              // s^1 coefficient (num)
+    double b2 = 0.;                              // s^2 coefficient (num)
+
+// initialize transfer function coefficients vectors
+    // !!! note the order of coefficients
+    coeff1 = {a2, a1, a0};
+    coeff2 = {b2, b1, b0};
+ /* coeff1.push_back(a2); coeff1.push_back(a1); coeff1.push_back(a0); 
+    coeff1.push_back(b2); coeff1.push_back(b1); coeff1.push_back(b0);
+*/
+}
+
+
 
 std::vector<double> GetDetectorPulseShape(std::string flag)
 {
@@ -140,8 +218,11 @@ std::vector<std::vector<std::vector<double> > > GetNoise(int isAux, std::string 
   std::vector<double> VectorTmp1;
 
   //Rescale channels of the noise library (include Nat. Ge detectors)
-  for(int channel = 0;channel<3;channel++){
-    VectorTmp1.push_back(0);
+  for(int ch = 0;ch<3;ch++){
+    if(isAux) 
+      for(int i=0;i<1000;i++) VectorTmp1.push_back(0);
+    else
+      for(int i=0;i<4096;i++) VectorTmp1.push_back(0);
     VectorTmp2.push_back(VectorTmp1);	  
     VectorTmp1.clear();
     Data.push_back(VectorTmp2);
@@ -154,8 +235,8 @@ std::vector<std::vector<std::vector<double> > > GetNoise(int isAux, std::string 
   ostringstream oss;
     //    oss << filenumber;
     
-    string noisefilename = "/lfs/l1/gerda/akirsch/gerda-BEGesimulation/run-58-59-60-61-62-63-64_Results/output/noise_library/noiseLibrary_all_";
-    noisefilename += idsimu + ".root";
+    string noisefilename = "./NoiseLibrary_run0086.root";
+  //noisefilename += idsimu + ".root";
     
     TFile* fNoiseFile = new TFile(noisefilename.c_str(),"READ");
     TTree* NoiseTree = 0;
@@ -163,22 +244,23 @@ std::vector<std::vector<std::vector<double> > > GetNoise(int isAux, std::string 
     
     if(fNoiseFile->GetListOfKeys()->Contains(treename.c_str()))
       {
-	for(int channel = 0;channel<37;channel++){
+	for(int ch = 3;ch<NDET;ch++){
 	  oss.str("");
-	  if(channel < 10) oss << 0;
-	  oss << channel;
+	  if(ch < 10) oss << 0;
+	  oss << ch;
 	  	  
 	  int k = 0;
 	  string branchname = "ch" + oss.str();
 	  if(isAux) branchname += "_aux";
 	  
-	  std::cout << "\r Get noise from channel " << channel << " and file " << idsimu << " Branch : " << branchname << std::flush;
+	  std::cout << "\r Get noise from channel " << ch << " and file " << idsimu << " Branch : " << branchname << std::flush;
 	  
 	  if(debugADL)  std::cout << "Noise library " << noisefilename << " opened" << std::endl;
 	  fNoiseFile->GetObject(treename.c_str(),NoiseTree);
 	  if(NoiseTree->GetListOfBranches()->Contains(branchname.c_str())){
 	   	    
-	    NoiseTree->SetBranchAddress(branchname.c_str(),&VectorTmp,&BranchTmp);
+	    NoiseTree->SetBranchAddress(branchname.c_str(),&VectorTmp);
+	    //cout << "   entries : " << NoiseTree->GetEntries() << endl; 
 
 	    for(int line = 0;line<NoiseTree->GetEntries();line++){
 	    //for(int line = 0;line<1;line++){
@@ -186,7 +268,6 @@ std::vector<std::vector<std::vector<double> > > GetNoise(int isAux, std::string 
 	      VectorTmp2.push_back((*VectorTmp));	  	      
 	      VectorTmp->clear();
 	    }
-	    
 	  }
 	  else{
 	    VectorTmp->push_back(0);
@@ -196,19 +277,19 @@ std::vector<std::vector<std::vector<double> > > GetNoise(int isAux, std::string 
 	    if(debugADL) std::cout << "\r Branch " << branchname << " not found in  " << treename << " tree" << std::endl;
 	  }
 	  Data.push_back(VectorTmp2);
+	  //	  cout << "   Data size : " <<Data.size() << " x " << Data[ch].size()  << " x " <<Data[ch][0].size() << endl; 
 	  VectorTmp2.clear();
 	}
       }
     else std::cout << "\r Tree " << treename << " not found in  " << noisefilename << std::endl;
   fNoiseFile->Close();
   //  }
-
   
   return Data;
 }
 
 
-MGTWaveform* SetNoise(MGTWaveform* waveform,std::vector<std::vector<std::vector<double> > > &Noise, double Amplitude, double Baseline, double Scale, int channel) {
+MGTWaveform* SetNoise(MGTWaveform* waveform,std::vector<std::vector<std::vector<double> > > &Noise, double Amplitude, double Baseline, double Scale, int ch) {
     
   int wfSize = waveform->GetLength();
   
@@ -216,16 +297,15 @@ MGTWaveform* SetNoise(MGTWaveform* waveform,std::vector<std::vector<std::vector<
   wf->SetLength(wfSize);
   
   gRandom->SetSeed(time(NULL));
-  int randomline = int(gRandom->Uniform(0,Noise[channel].size()));
+  int randomline = int(gRandom->Uniform(0,Noise[ch].size()));
+  if(Noise[ch][randomline].size() != wfSize){std::cerr << "Channel : " << ch << " Noise entry " << randomline << " doesn't have the proper size " << Noise.size() << "x" << Noise[ch].size() << "x" << Noise[ch][randomline].size() << " " << wfSize << std::endl; return wf;}
   
-  if(Noise[channel][randomline].size() != wfSize){std::cerr << "Channel : " << channel << " Noise entry " << randomline << " doesn't have the proper size " << Noise.size() << "x" << Noise[channel].size() << "x" << Noise[channel][randomline].size() << " " << wfSize << std::endl; return wf;}
-  
-  for (size_t i=0;i<wfSize;i++) (*wf)[i] = Amplitude * Scale *  waveform->At(i) + 4.*Baseline + Noise[channel][randomline][i];
+  for (size_t j=0;j<wfSize;j++) (*wf)[j] = Amplitude * Scale *  waveform->At(j) + 4.*Baseline + Noise[ch][randomline][j];
   
   return wf;
 }
 
-MGTWaveform* SetAuxNoise(MGTWaveform* waveform,std::vector<std::vector<std::vector<double> > > &AuxNoise, double AuxAmplitude, double AuxBaseline,double AuxScale,int channel) {
+MGTWaveform* SetAuxNoise(MGTWaveform* waveform,std::vector<std::vector<std::vector<double> > > &AuxNoise, double AuxAmplitude, double AuxBaseline,double AuxScale,int ch) {
     
   int wfSize = waveform->GetLength();
 
@@ -233,13 +313,13 @@ MGTWaveform* SetAuxNoise(MGTWaveform* waveform,std::vector<std::vector<std::vect
   wf->SetLength(wfSize);
   
   gRandom->SetSeed(time(NULL));
-  int randomline = int(gRandom->Uniform(0,AuxNoise[channel].size()));
+  int randomline = int(gRandom->Uniform(0,AuxNoise[ch].size()));
   
-  if(AuxNoise[channel][randomline].size() != wfSize){std::cerr << "Channel : " << channel << " AuxNoise entry " << randomline << " doesn't have the proper size " << AuxNoise.size() << "x" << AuxNoise[channel].size() << "x" << AuxNoise[channel][randomline].size() << " " << wfSize << std::endl; return wf;}
+  if(AuxNoise[ch][randomline].size() != wfSize){std::cerr << "Channel : " << ch << " AuxNoise entry " << randomline << " doesn't have the proper size " << AuxNoise.size() << "x" << AuxNoise[ch].size() << "x" << AuxNoise[ch][randomline].size() << " " << wfSize << std::endl; return wf;}
   
-  for (size_t i=0;i<wfSize;i++){
+  for (size_t j=0;j<wfSize;j++){
     //    std::cout<< "DEBUG :  Trace amplitudes : " <<  waveform->At(i) << " " << AuxBaseline << " " << AuxNoise[detector_channel][randomline][i] << std::endl;
-    (*wf)[i] = AuxAmplitude * AuxScale * waveform->At(i) + AuxBaseline + AuxNoise[channel][randomline][i];
+    (*wf)[j] = AuxAmplitude * AuxScale * waveform->At(j) + AuxBaseline + AuxNoise[ch][randomline][j];
   }  
 
   return wf;
@@ -397,7 +477,7 @@ MGTWaveform* Apply2poles(MGTWaveform*kAnInput, double RCtau1, double RCtau2,int 
   if(!isAux) kAnOutput = new MGTWaveform(NULL,0,SamplingFrequency,0.0,MGWaveform::kADC,0);    
   else       kAnOutput = new MGTWaveform(NULL,0,AuxSamplingFrequency,0.0,MGWaveform::kADC,0);
   
-    kAnOutput->SetLength(kAnInput->GetLength());
+  kAnOutput->SetLength(kAnInput->GetLength());
 
     double a1 = timeStep/RCtau2;
     double b1 = 1-timeStep/(RCtau1+RCtau2);
@@ -428,7 +508,8 @@ MGTWaveform* ApplyRCdecay(MGTWaveform*kAnInput,double A,double tau1, double tau2
     double timeStep = 1./(AuxSamplingFrequency*1e3);
     if(!isAux) kAnOutput = new MGTWaveform(NULL,0,SamplingFrequency,0.0,MGWaveform::kADC,0);
     else       kAnOutput = new MGTWaveform(NULL,0,AuxSamplingFrequency,0.0,MGWaveform::kADC,0);
-    
+  
+
     kAnOutput->SetLength(kAnInput->GetLength());
 
     //1st decay constant parameters
@@ -448,12 +529,107 @@ MGTWaveform* ApplyRCdecay(MGTWaveform*kAnInput,double A,double tau1, double tau2
         kAnOutput2[j] = a20*kAnInput->At(j) + a21*kAnInput->At(j-1) + b21*kAnOutput2[j-1];
         (*kAnOutput)[j] = A*kAnOutput1[j] + (1-A)*kAnOutput2[j];
     }
+    return kAnOutput;
+    
+}
+
+ 
+//ER response model from K.Panas
+MGTWaveform* ApplyResponse(std::vector<double>&adlpulse, std::vector<double>&a, std::vector<double>&b, int isAux){
+
+    MGTWaveform *kAnOutput;
+    if(!isAux) kAnOutput = new MGTWaveform(NULL,0,SamplingFrequency,0.0,MGWaveform::kADC,0);
+    else       kAnOutput = new MGTWaveform(NULL,0,AuxSamplingFrequency,0.0,MGWaveform::kADC,0);
+
+    kAnOutput->SetLength(adlpulse.size());
+  
+    double T;
+    if(isAux==1) T= 10e-9;
+    else  T= 40e-9;
+    int vecsize = adlpulse.size();
+    vecsize = vecsize +1;   // we need imp response 1 sample longer, because it will differntatied at the end
 
 
+    // declare input/output vector
+    std::vector<double> x(vecsize);
+    std::vector<double> y(vecsize);
+    
+    // initialize with zeros
+    std::fill(x.begin(), x.end(), 0);
+    std::fill(y.begin(), y.end(), 0);    
+
+    // impulse response = delta-like input
+    x[2] = 1.;
+   
+    double K = 2./T;
+    
+y[0] =  (pow(K, 2)*b[0] + K*b[1] + b[2])/ (pow(K, 2)*a[0] + K*a[1] + a[2])   * x[0];
+    y[1] =  (pow(K, 2)*b[0] + K*b[1] + b[2])/ (pow(K, 2)*a[0] + K*a[1] + a[2])   * x[1] + 
+            (2*b[2] - 2*(pow(K, 2)*b[0]))/ (pow(K, 2)*a[0] + K*a[1] + a[2])	 * x[0] + 
+            (-1)*(2*a[2] - 2*(pow(K, 2)*a[0]))/ (pow(K, 2)*a[0] + K*a[1] + a[2]) * y[0];
+
+
+    for (size_t n=2; n < y.size(); n++){
+        y[n] =  (pow(K, 2)*b[0] + K*b[1] + b[2])/ (pow(K, 2)*a[0] + K*a[1] + a[2])   *  x[n]    + 
+                (2*b[2] - 2*(pow(K, 2)*b[0]))/ (pow(K, 2)*a[0] + K*a[1] + a[2])      *  x[n-1]  + 
+                (pow(K, 2)*b[0] - K*b[1] + b[2])/(pow(K, 2)*a[0] + K*a[1] + a[2])    *  x[n-2]  + 
+                (-1)*(2*a[2] - 2*(pow(K, 2)*a[0]))/ (pow(K, 2)*a[0] + K*a[1] + a[2]) *  y[n-1]  + 
+                (-1)*(pow(K, 2)*a[0] - K*a[1] + a[2])/ (pow(K, 2)*a[0] + K*a[1] + a[2])*y[n-2] ;
+    }
+
+    // normalize y amplitude to 1
+    auto it_maxelement = std::max_element(std::begin(y), std::end(y)); // c++11
+    double ymax = *it_maxelement;
+    for (size_t i=0; i<y.size(); i++){
+        y[i] = y[i] / ymax;
+    }        
+    
+    // since we use charge pulses from ADL (not current pulses), we need to differentiate them
+    // however, if we convolve differtiated impulse response, the result is the same
+    
+    std::vector<double> ydiff;
+    ydiff.reserve(adlpulse.size());
+    for (size_t i=0; i<y.size()-1; i++){
+        ydiff.push_back(y.at(i+1) -y.at(i) );
+    }
+/*    
+    std::vector<double> time(adlpulse.size());
+    std::vector<double>::iterator iter;
+    double val = 0;
+    for (iter = time.begin(),  val = 0.; iter != time.end(); ++iter, val += T) {
+        *iter = val;
+    }
+    auto mg = new TMultiGraph();
+    TGraph *g1 = new TGraph(adlpulse.size(), &time[0], &adlpulse[0]);
+    TGraph *g2 = new TGraph(adlpulse.size(), &time[0], &ydiff[0]);
+
+    TCanvas* c = new TCanvas("c","c",700,500);
+    c->cd();
+    g2->SetLineColor(kRed);
+    mg->Add(g1);
+    mg->Add(g2);
+    mg->Draw("AL");
+    c->SaveAs("pulse_impresponse.root");
+  */ 
+    //Convolve Impulse response and adlpulse (ydiff(t)*adlpulse(t))
+    int len1 = adlpulse.size();
+    int len2 = ydiff.size();
+    int indEnd = std::min(len1,len2);
+
+    for (int i=0; i<indEnd; i++){
+      double sum = 0.;
+      
+      for (int j=0; j<i+1; j++){
+	//	cout << " ---> " << i << " " << j << " " <<  ydiff[j] << " " << adlpulse[i-j] << endl;
+	sum += ydiff[j]*adlpulse[i-j];
+      }
+      (*kAnOutput)[i]=sum;
+      
+    }    
     return kAnOutput;
 
-//    return kAnInput;
 }
+
 
 int WriteOutputs(TFile* fOutputFile)
 {
@@ -471,40 +647,47 @@ int WriteOutputs(TFile* fOutputFile)
 
 int main(int argc, const char* argv[])
 {
+TApplication* myApp = new TApplication("mAapp",0,0);
+
   std::cout << " " << std::endl;
   std::cout << "Enter in ConvolutePulses " << std::endl;
   std::cout << " " << std::endl;
 
- string inputrootpath="./RawPulses/";
- string rootfilename,idSimu="1";
- string outputrootpath="./Tier1/";
- int isNoise=0,RMSnoise=0,filter=3;
+ string inputrootpath="RawPulses/";
+ string rootfilename,idSimu="0";
+ string outputrootpath="Tier1/";
+ int isNoise=0;
+ int RMSnoise=0,filter=0;
  double gain=-1.,baseline=-1.;
+ double rf=500e6; double cf=0.35e-12; double GBP=2750e6 ;double cd=50;    //initial ER paramaeters for Panas Model
  int debug =0;
+// int DEP=1;
  int i=0;
  while(++i<argc){
    const char* opt=argv[i];
-
-   if(strcmp(opt,"-d")==0)	 sscanf(argv[++i],"%d",&debugADL);      //debug mode 0=off, 1=On
-   else if(strcmp(opt,"-ip")==0) inputrootpath=argv[++i];                   // specify input path
-   else if(strcmp(opt,"-op")==0) outputrootpath=argv[++i];                  // specify output path
-   else if(strcmp(opt,"-i")==0) rootfilename=argv[++i];                    // specify input filename
-   else if(strcmp(opt,"-h")==0)  PrintHelp();
-   else if(strcmp(opt,"-gain")==0) gain=atof(argv[++i]);            //input the gain manually
-   else if(strcmp(opt,"-bl")==0) baseline=atof(argv[++i]);            //input the baseline manually
-   else if(strcmp(opt,"-filter")==0) filter=atoi(argv[++i]);            //0 or 1(pulser) or 2(1-pole circuit) or 3(2-poles circuit)
-   else if(strcmp(opt,"-isNoise")==0) sscanf(argv[i++],"%d",&isNoise);   //[0 or 1=Gerda or 2=Gaus]
-   else if(strcmp(opt,"-RMS")==0)  RMSnoise=atoi(argv[++i]);  //if ISNOISE=2, set AuxWf rms noise and x4 for Wf 
-   else if(strcmp(opt,"-idSimu")==0) idSimu=argv[++i];        //
-   else {
-   cout << "You did not provide rootfilename " << endl;
-   }
+   if(strcmp(opt,"-d")           ==0) sscanf(argv[++i],"%d",&debugADL);      //debug mode 0=off, 1=On
+   else if(strcmp(opt,"-ip")     ==0) inputrootpath=argv[++i];                   // specify input path
+   else if(strcmp(opt,"-op")     ==0) outputrootpath=argv[++i];                  // specify output path
+   else if(strcmp(opt,"-i")      ==0) rootfilename=argv[++i];                    // specify input filename
+   else if(strcmp(opt,"-h")      ==0) PrintHelp();
+   else if(strcmp(opt,"-gain")   ==0) gain    =atof(argv[++i]);           //input the gain manually
+   else if(strcmp(opt,"-bl")     ==0) baseline=atof(argv[++i]);       //input the baseline manually
+   else if(strcmp(opt,"-filter") ==0) filter  =atoi(argv[++i]);         //0 or 1(pulser) or 2(1-pole circuit) or 3(2-poles circuit)
+   else if(strcmp(opt,"-isNoise")==0) isNoise =atoi(argv[++i]);
+   else if(strcmp(opt,"-RMS")    ==0) RMSnoise=atoi(argv[++i]);  //if ISNOISE=2, set AuxWf rms noise and x4 for Wf 
+   else if(strcmp(opt,"-idSimu") ==0) idSimu  =argv[++i];        //
+//   else if(strcmp(opt,"-dep")    ==0) DEP     =atoi(argv[++i]);           //default:dep=1(convolute only DEP pulses) and (dep=0(all)
+   else if(strcmp(opt,"-GBP")    ==0) GBP     =atof(argv[++i]);           //input the GBP for ER_panas manually
+   else if(strcmp(opt,"-rf")     ==0) rf      =atof(argv[++i]);           //input the feedback resistance manually
+   else if(strcmp(opt,"-cf")     ==0) cf      =atof(argv[++i]);           //input the feedback Capacitance manually
+   else if(strcmp(opt,"-cd")     ==0) cd      =atof(argv[++i]);           //input the detector Capacitance manually
+   else {cout << "You did not provide rootfilename " << endl;}
  }	
 
-
   std::string wfInRootFilename = inputrootpath+rootfilename;
-  std::string wfOutRootFilename = outputrootpath+rootfilename;
 
+  std::string wfOutRootFilename = outputrootpath+rootfilename;
+  cout<<"Input filename : "<<wfInRootFilename<<endl;
   double scale = 1., auxscale = 1.;
 
   // Set waveform amplitudes/noise
@@ -539,7 +722,7 @@ int main(int argc, const char* argv[])
       noise2.push_back(noise1);
       noise1.clear();
     }
-
+    
     Noise.assign(NDET,noise2);
     noise2.clear();
     
@@ -582,6 +765,7 @@ int main(int argc, const char* argv[])
 	else if(argc == 10) for(int i = 0;i<NDET;i++) ERCnst[0].push_back(atof(argv[9]));
   	else if(argc == 9) GetFitParameters(1, DecayCnst, ERCnst);
   }
+	
   else GetFitParameters(2, DecayCnst, ERCnst);
 
   // Parameter of the ORTEC detector
@@ -658,12 +842,22 @@ int main(int argc, const char* argv[])
   std::cout << "Tree entries : " << Nentries << std::endl;
   if(display) std::cout << "Tree entries : " << Nentries << std::endl;
   
+  string pulselist=Form("%s.txt",wfInRootFilename.c_str());//DEP pulse list	
+  std::vector<int> pulses;				//DEP pulses
+  pulses = ReadPulseList(pulselist);  		//read dep events
+  int pulse=0,count=0;						//DEP pulselist serial number of entry
+
+  // for(int i=992000;i<10000000;i++){  //for debug only
   for(int i=0;i<Nentries;i++){
     if(i % 1000 == 0){
       end = clock();
       cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
       cout << i << " events / " << Nentries << " treated in " << cpu_time_used << " seconds" << endl;
     }
+
+  if(i==pulses[count])count++;
+  else	continue;     //create small Tier1 files with just DEP events
+ 			
     
     tree->GetEntry(i);
     
@@ -701,8 +895,6 @@ int main(int argc, const char* argv[])
       }
       if(channel == -1){ std::cerr << "\r No valid channel found for event " << i << std::endl; exit(1);}
       
-      //if(channel != 20) continue;
-      
       if(debugADL) std::cout << i << " Counter : " << validChannelCounter << " Channel : " << channel << " ETot : " << eventIn->GetETotal() << std::endl;
 
       GETGERDADigitizerData* digiData = new ((*(eventOut->GetDigitizerData()))[validChannelCounter]) GETGERDADigitizerData(); 
@@ -730,17 +922,21 @@ int main(int argc, const char* argv[])
 	auxwaveform = new ((*(eventOut->GetAuxWaveforms()))[validChannelCounter])
 	  MGTWaveform(NULL,0,AuxSamplingFrequency,0.0,MGWaveform::kADC,0);     
 	auxwaveform->SetID(channel);
-	auxwaveform->SetTOffset(0.);      
+	auxwaveform->SetTOffset(0.);
 	auxwaveform->SetLength(auxwfLength);
       }
      
       if(debugADL) std::cout << "Waveform length : " 
 			     << eventIn->GetWaveformID(channel)->GetLength() << " & " 
 			     << eventIn->GetAuxWaveformID(channel)->GetLength() << std::endl;
-      
-      waveform->operator=(*ApplyRCdecay(eventIn->GetWaveformID(channel),DecayCnst[0][channel],DecayCnst[1][channel],DecayCnst[2][channel],0));
-      auxwaveform->operator=(*ApplyRCdecay(eventIn->GetAuxWaveformID(channel),DecayCnst[0][channel],DecayCnst[1][channel],DecayCnst[2][channel],1));
 
+if(i==pulses[pulse]){
+
+      if(filter != 4 && filter != 0){
+	waveform->operator=(*ApplyRCdecay(eventIn->GetWaveformID(channel),DecayCnst[0][channel],DecayCnst[1][channel],DecayCnst[2][channel],0));
+	auxwaveform->operator=(*ApplyRCdecay(eventIn->GetAuxWaveformID(channel),DecayCnst[0][channel],DecayCnst[1][channel],DecayCnst[2][channel],1));
+      }
+      
       if(filter == 1){
 	if(debugADL) std::cout << "Convolute raw pulses with test pulser response " << std::endl;
 	waveform->operator=(*ConvoluteWF(waveform,Pulser[channel],scale,0));
@@ -756,7 +952,19 @@ int main(int argc, const char* argv[])
 	waveform->operator=(*Apply2poles(waveform,ERCnst[0][channel],ERCnst[1][channel],0));
 	auxwaveform->operator=(*Apply2poles(auxwaveform,ERCnst[0][channel],ERCnst[1][channel],1));
       }
-      
+      //K.Panas ER mode
+      else if(filter == 4){
+	std::vector<double> a(3,0), b(3,0);  			//Long Trace::ER parameters and transfer function coefficients: K.Panas model 
+  	GetERparameters(a,b,channel,GBP,cd,0);
+	std::vector<double> pulse = eventIn->GetWaveformID(channel)->GetVectorData();      
+	waveform->operator=(*ApplyResponse(pulse,a,b,0));
+
+	std::vector<double> aa(3,0), bb(3,0);  			//Short Trace::ER parameters and transfer function coefficients: K.Panas model 
+  	GetERparameters(aa,bb,channel,GBP,cd,1);	
+	auto auxpulse = eventIn->GetAuxWaveformID(channel)->GetVectorData();
+	auxwaveform->operator=(*ApplyResponse(auxpulse,aa,bb,1));
+      }
+ 
       if(filter != 0){
 	if(debugADL) std::cout << "Add noise/gain/baseline to pulses " << std::endl;
 	waveform->operator=(*SetNoise(waveform,Noise,Gain[channel],Baseline[channel],scale,channel));
@@ -767,8 +975,13 @@ int main(int argc, const char* argv[])
 	auxwaveform->operator=(*SetAuxNoise(eventIn->GetAuxWaveformID(channel),AuxNoise,Gain[channel],Baseline[channel],auxscale,channel));
       }
 
+}
+else{				//non DEP events (not convoluted to save time)
+    waveform->operator= (*eventIn->GetWaveformID(channel));
+    auxwaveform->operator= (*eventIn->GetAuxWaveformID(channel));
+}
+      
       if(display){
-	TApplication* myApp = new TApplication("mAapp",0,0);
 	TGraph* gr = new TGraph();     
 	for(int i = 0;i<waveform->GetLength();i++)  gr->SetPoint(i,i*40,(*waveform)[i]);
 	TGraph* grAux = new TGraph();  
@@ -786,12 +999,17 @@ int main(int argc, const char* argv[])
 	myApp->Run();
       }
     }
+    if(i==pulses[pulse])pulse++;			
+
     fOutputFile->cd();
-    MGTree->Fill(); 
+    MGTree->Fill();
+    delete waveform;
+    delete auxwaveform;		 
+    delete digiData;	
   }
   wfRootFile->Close();
 
   WriteOutputs(fOutputFile);
-
+  cout<<"Normal termination"<<endl;
   return 0;
 }
