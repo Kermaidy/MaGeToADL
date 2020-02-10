@@ -63,7 +63,7 @@ private:
   int detector_channel; // Detector channel
   int debugADL;
 
-  double inverted; // Correct ADL hits position for inverted detectors
+  int inverted; // Correct ADL hits position for inverted detectors
   double xoffset;  // Transpose MaGe coordinate
   double yoffset;  //      into the ADL referential
   double zoffset;

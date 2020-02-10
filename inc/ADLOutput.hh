@@ -46,7 +46,7 @@ public:
  //private  members
 private:
 
-  void SimulatePulse(int);   // ADL-4.2
+  double SimulatePulse(int);   // ADL-4.2
   void SimulateEmptyWaveform(int);   // simulates empty wf
 
   static const int MAX_NTRACE=2000;
